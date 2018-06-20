@@ -15,7 +15,7 @@ R packages tend to go to [Journal of Statistical Software](https://github.com/pe
 
 ## How to start using
 
-`git clone --recurse-submodules https://github.com/petteriTeikari/rPLR`
+`git clone --recurse-submodules https://github.com/petteriTeikari/R-PLR`
 
 ## How-to-update the repo with the submodules
 
