@@ -2,6 +2,8 @@
 
 The coming R package to be published. Remember the high-level overview there [PLR_Overview, formerly known as PLR Toolbox](https://github.com/petteriTeikari/PLR_Overview)
 
+![Idea](https://github.com/petteriTeikari/rPLR/blob/master/documentation/images/scheme.png "Idea")
+
 R packages tend to go to [Journal of Statistical Software](https://github.com/petteriTeikari/PLR_Overview), but you could publish this in some Elsevier journal as well and make pupillometry more easy to pick up by novices ultimately:
 
 * [Computer Methods and Programs in Biomedicine](https://www.journals.elsevier.com/computer-methods-and-programs-in-biomedicine), IF = 2.503
