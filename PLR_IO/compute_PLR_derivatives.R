@@ -1,11 +1,12 @@
-compute.PLR.derivatives = function(t, y, debugON) {
+compute.PLR.derivatives = function(t, y, deriv_smooth = 'loess', loess_span = 0.05,
+                                   debugON = FALSE, pre_denoising = TRUE) {
   
   # Smooth first with LOESS
   # https://stackoverflow.com/questions/14082525/how-to-calculate-first-derivative-of-time-series
   # loess.model = loess(y ~ t, span = 0.75)
   # pupil_smooth = predict(loess.model, data.frame(t), se = TRUE)
   # plot(t, pupil_smooth$fit) # too smooth actually
-  diff1 = diff(y, differences=1) # 1st derivative
+  diff1 = diff(y, differences=1, lag=1) # 1st derivative
   
   # Pad the derivative to original length
   y_diff1 = vector(mode = 'numeric', length = length(y))
@@ -17,30 +18,89 @@ compute.PLR.derivatives = function(t, y, debugON) {
   # no_of_samples_in = length(y)
   # time_new = seq(from = t[1], to = tail(t,1), length = upsample_factor*no_of_samples_in)
   
-  options(warn = -1)
-  loess.model1 = loess(y_diff1 ~ t, span = 0.20)
-    # Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  :
-    # Chernobyl! trL>n 22
-    # TODO try/catch when you have too many NAs in the y, increase span?
-  options(warn = 0)
+  if (pre_denoising) {
+    
+    library(wmtsa)
+    library(ifultools)
+    library(Rwave)
+    
+    diff1_denoised = wavShrink(diff1, wavelet='s8',
+                               n.level=ilogb(length(diff1), base=2),
+                               shrink.fun="hard", thresh.fun="universal", threshold=NULL,
+                               thresh.scale=1, xform="modwt", noise.variance=-1.0,
+                               reflect=TRUE)
   
-  y_diff1_smooth = predict(loess.model1, data.frame(t), se = TRUE)
+    # correct the length
+    y_diff1n = vector(mode = 'numeric', length = length(y))
+    y_diff1n[] = NA
+    y_diff1n[2:length(y_diff1n)] = diff1_denoised
+    y_diff1_denoised = y_diff1n
+    
+    # resid = y_diff1_denoised - y_diff1
+    # plot(y_diff1_denoised, type='l')
+    # seems useless
+  }
+  
+  options(warn = -1)
+  if (identical(deriv_smooth, 'loess')) {
+    
+    loess.model1 = loess(y_diff1 ~ t, span = loess_span)
+      # Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  :
+      # Chernobyl! trL>n 22
+      # TODO try/catch when you have too many NAs in the y, increase span?
+    options(warn = 0)
+    y_diff1_model = predict(loess.model1, data.frame(t), se = TRUE)
+    y_diff1_smooth = y_diff1_model$fit
+    
+  } else if (identical(deriv_smooth, 'someOtherMethod?')) {
+
+  } else {
+    warning('YOUR DIFF SMOOTHING NOT DEFINED YET, A TYPO FOR = ', deriv_smooth, '?')
+  }
+  
   
   # Compute the 2nd derivative as well
-  diff2 = diff(y_diff1_smooth$fit, differences=1) # 2nd derivative
+  diff2 = diff(y_diff1_smooth, differences=1, lag=1) # 2nd derivative
   y_diff2 = vector(mode = 'numeric', length = length(y))
   y_diff2[] = NA
   y_diff2[2:length(y_diff2)] = diff2
   
-  loess.model2 = loess(y_diff2 ~ t, span = 0.25)
-  y_diff2_smooth = predict(loess.model2, data.frame(t), se = TRUE)
+  if (identical(deriv_smooth, 'loess')) {
+    loess.model2 = loess(y_diff2 ~ t, span = loess_span)
+    y_diff2_model = predict(loess.model2, data.frame(t), se = TRUE)
+    y_diff2_smooth = y_diff2_model$fit
+  } else if (identical(deriv_smooth, 'emd')) {
+    
+  } else if (identical(deriv_smooth, 'ceemd')) {
+  
+  }
+  
   
   # DEBUG PLOT  
   if (debugON) {
-    plot(t, y_diff1_smooth$fit)
-    points(t, y_diff2_smooth$fit, col='red')
+    df_plot = data.frame(time = t, signal = y, 
+                         velocity_dirty = y_diff1,
+                         velocity = y_diff1_smooth,
+                         acceleration_dirty = y_diff2,
+                         acceleration = y_diff2_smooth)
+    
+    p = list()
+    p[[1]] = ggplot(df_plot, aes(time)) + 
+                    geom_line(aes(y = signal, colour = 'signal'))
+    
+    p[[2]] = ggplot(df_plot, aes(time)) + 
+                    geom_line(aes(y = velocity_dirty, colour = 'velocity_dirty')) + 
+                    geom_line(aes(y = velocity, colour = 'velocity_loess'))
+    
+    p[[3]] = ggplot(df_plot, aes(time)) + 
+                    geom_line(aes(y = acceleration_dirty, colour = 'acceleration_dirty')) +
+                    geom_line(aes(y = acceleration, colour = 'acceleration_loess'))
+    
+    no_of_cols = 1
+    do.call(grid.arrange, c(p, list(ncol=no_of_cols)))
+    
   }
   
-  return(list(y_diff1_smooth$fit, y_diff2_smooth$fit))
+  return(list(y_diff1_smooth, y_diff2_smooth))
   
 }

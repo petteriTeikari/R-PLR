@@ -35,13 +35,17 @@ normalize.all.variables = function(data_frame_out, baseline_stats, value_operato
   
   # these variables are not meant to be normalized
   # REMEMBER: that if you add new variables to data_frame, this part
-  # is not exactly adative
-  vars_to_excl = c('frame', 'time', 'x', 'y', 'X.', 
+  # is not exactly adaptive
+  vars_to_excl = c('frame', 'time', 'x', 'y', 'X.', 'X', 'X.1',
                    'R_center', 'G_center', 'B_center', 
                    'R', 'G', 'B', 
                    'error_fractional', 'video_fractional_error', 
                    'spline_error_fractional',
-                   'safe_vector')
+                   'safe_vector', 
+                   'exluded_points', 'included_points', 
+                   'exluded_points_2ndPass', 'included_points_2ndPass',
+                   'handplaced_points',
+                   'time_onsetZero', 'time_maxDeriv_zero')
   
   to_keep = is.na(match(vars_names_in, vars_to_excl))
   vars_to_normalize = vars_names_in[to_keep]
