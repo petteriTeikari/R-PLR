@@ -1,0 +1,260 @@
+library(ggplot2)
+library(reshape2)
+library(Cairo)   # For nicer ggplot2 output when deployed on Linux
+  # https://gykovacsblog.wordpress.com/2017/05/15/installing-cairo-for-r-on-ubuntu-17-04/
+  # apt-get install libcairo2-dev libgtk2.0-dev xvfb xauth xfonts-base libxt-dev
+
+# TODO! How to get the current directory?
+base_dir = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/apps_Shiny/inspect_EMD'
+recon_dir = file.path(base_dir, '..', '..', 'PLR_reconstruction', 'subfunctions', fsep = .Platform$file.sep)
+IO_path = file.path(base_dir, '..', '..', 'PLR_IO', fsep = .Platform$file.sep)
+
+# DATA
+path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/recon_EMD'
+pattern = '*.csv'
+path_out = file.path(path, 'IMF_fusion', fsep = .Platform$file.sep)
+move_path = file.path(path, 'DONE', fsep = .Platform$file.sep) # move input to, when done
+
+# Source the subfunctions
+source(file.path(recon_dir, 'post_process_decomposition_IMFs.R', fsep = .Platform$file.sep))
+source(file.path(IO_path, 'export_pupil_dataframe_toDisk.R', fsep = .Platform$file.sep))
+
+server = function(input, output, session) {
+    
+  # DATA --------------------------------------------------------------------
+
+    # INPUT
+    files_fullpath = list.files(path=path, pattern=pattern, recursive=FALSE, full.names = TRUE)
+    filename_in = files_fullpath[1] # automatically always moves the done files away at the end of script then
+    cat(paste('Input file:', filename_in, '\n'))
+    filecode = strsplit(tail(strsplit(filename_in, .Platform$file.sep)[[1]],1), '_')[[1]][1]
+        
+    # Read in
+    df_CEEMD = read.csv(filename_in)
+    CEEMD_names = colnames(df_CEEMD)
+      imf_indices = which(mapply(grep,'^CEEMD',CEEMD_names) == 1)
+      time_index = which(mapply(grep,'^time',CEEMD_names) == 1)
+      residue_index = which(mapply(grep,'^residue',CEEMD_names) == 1)
+      indices_to_keep = c(imf_indices, residue_index)
+      
+      # Check that there is something on residue
+      if (is.logical(df_CEEMD$residue)) {
+        df_CEEMD$residue = as.numeric(df_CEEMD$residue)
+        df_CEEMD$residue[] = 0
+        warning('Your EMD did not leave any residue')
+      }
+    
+    # Keep now only the IMFs, and later on figure out if you want to display  
+    # instantaneous frequencies and amplitudes 
+    df_IMFs = df_CEEMD[indices_to_keep]
+      number_of_IMFs = length(df_IMFs)
+      names_IMF_in = colnames(df_IMFs)
+    
+    
+    # trim names
+    names_IMF = names_IMF_in
+    for (i in 1 : length(names_IMF_in)) {
+      names_IMF[i] = gsub('CEEMD_', '', names_IMF_in[i])
+    }
+    
+    # Make IMFs plottable into a single ggplot plot with baseline offsets
+    # df_plot_IMFs = add.offsets.for.plt(df_IMFs, names_IMF)
+    
+      col_max = apply(abs(df_IMFs[]),2,max)
+      largest_col_value = max(col_max)
+      col_height = 2*round(largest_col_value, digits=0)
+      plot_height = length(col_max) * col_height  
+    
+      df_plot_IMFs = list()
+      baseline_to_add = vector(mode='numeric', length(names_IMF_in))
+      for (i in 1 : length(df_IMFs)) {
+        baseline_to_add[i] = -1 * (col_height * (i-1))
+        df_plot_IMFs[[names_IMF[i]]] = df_IMFs[[names_IMF_in[i]]] + baseline_to_add[i]
+      }
+      
+      df_plot_IMFs[['time']] = df_CEEMD$time
+      df_plot_IMFs = data.frame(df_plot_IMFs)
+      
+      IMFs_plot = melt(df_plot_IMFs, id = 'time')
+    
+    # Components
+    components = c('noiseNorm', 'noiseNonNorm', 'hiFreq', 'loFreq', 'base')
+    
+    # Estimate the most likely combining of IMFs
+    IMF_index_estimates = estimate.imf.combination.indices(df_IMFs)
+    
+    # convert to radiobutton selections
+    IMF_radiobutton_indices = IMF.indices.into.radiobutton.indices(IMF_index_estimates, df_IMFs)
+    
+    # convert back
+    IMF_index_estimates = IMF.indices.from.radiobutton.indices(IMF_radiobutton_indices, df_IMFs, components)
+    
+    # All IMFs and residue combined makes the input
+    input_signal = rowSums(df_IMFs)
+    df_input = data.frame(x = df_CEEMD$time, pupil = input_signal)
+    
+    # denoised signal
+    smooth_indices = IMF_radiobutton_indices > 2
+    smooth_signal = df_IMFs[smooth_indices]
+    smooth_signal = rowSums(smooth_signal)
+    df_input[['denoised']] = smooth_signal
+    
+    signals = generate.signals.from.indices(df_IMFs, IMF_index_estimates, components)
+    signals_df = data.frame(signals)
+    signals_df[['time']] = df_CEEMD$time
+    signals_df_plot = melt(signals_df, id = 'time')
+
+    cat('                    ', filecode, '\n')
+
+  # BEHAVIOR SETUP ----------------------------------------------------------
+
+    # Track how user interacts with the radio buttons?
+    # https://stackoverflow.com/questions/40631788/shiny-observe-triggered-by-dynamicaly-generated-inputs
+    # https://stackoverflow.com/questions/41727621/shiny-switch-on-input-from-radio-buttons-causes-error-about-reactive-context
+    # https://stackoverflow.com/questions/45315106/shiny-how-to-send-updated-data-with-renderui-and-eventreactive
+    # https://community.rstudio.com/t/modularizing-an-app-with-dynamic-inputs-renderui/1454/2
+    # https://stackoverflow.com/questions/40631788/shiny-observe-triggered-by-dynamicaly-generated-inputs
+    
+    # TODO!
+      # None of the plots are updated now when you click the radiobuttons!
+      
+    # Linked plots (2nd and 3rd Column)
+    ranges2 <- reactiveValues(x = NULL, y = NULL)
+    
+    # TODO!
+      # Now the y-values are all wrong in the IMF plot, due to the baseline fix
+      
+    # MONITOR the IMF Plot for brush Zoom
+    observe({
+      brush <- input$plotIMF_brush
+      if (!is.null(brush)) {
+        ranges2$x <- c(brush$xmin, brush$xmax)
+        ranges2$y <- c(brush$ymin, brush$ymax)
+        
+      } else {
+        ranges2$x <- NULL
+        ranges2$y <- NULL
+      }
+    })
+    
+
+  # PLOTTING ----------------------------------------------------------------
+    
+    # IMF SELECTION TABLE
+    # 1st COLUMN
+    
+      # INITIALIZE THE RADIO BUTTONS
+      # https://groups.google.com/forum/#!topic/shiny-discuss/xW8f5g5gm4s
+      output$DynamicRadioButtons <- renderUI({
+        LL <- vector("list",number_of_IMFs)
+        
+        # get the initial selections from IMF_index_estimates
+        for(i in 1:number_of_IMFs){
+          LL[[i]] <- list(radioButtons(inputId = names_IMF[i], label = names_IMF[i], 
+                                       choices = components, selected = components[IMF_radiobutton_indices[i]], inline=T))
+        }       
+        return(LL)                      
+      })
+    
+      # Save button
+      observeEvent(input$button_save, {
+        cat('SAVE\n')
+        # https://stackoverflow.com/questions/35022021/shiny-get-the-selected-radios-button-selected-value
+        
+        output_matrix = matrix(nrow = length(names_IMF), ncol = 3)
+        for (i in 1 : length(names_IMF)) {
+          id = names_IMF[[i]]
+          # cat(input[[id]], '\n')
+          output_matrix[i, 1] = id
+          component_name = input[[id]]
+          output_matrix[i, 2] = which(components %in% component_name)
+          output_matrix[i, 3] = input[[id]]
+        }
+        
+        col_names = c('Input_IMF', 'Input Index', 'Output_Signal')
+        colnames(output_matrix) = col_names
+        output_mapping = data.frame(output_matrix)
+        names_selected = output_mapping[[col_names[[3]]]]
+        indices = indices.from.component.names(names_selected, components)
+        output_mapping = data.frame(output_matrix)
+          # str(names_selected)
+          # str(indices)
+        
+        IMF_index_estimates = IMF.indices.from.radiobutton.indices(indices, df_IMFs, components)
+        signals = generate.signals.from.indices(df_IMFs, IMF_index_estimates, components)
+        
+        # smooth signal from non-noise values
+        smooth_list = signals[c(3,4,5)]
+        smooth = vector(,length(smooth_list[1]))
+        for (i in 1 : length(smooth_list)) {
+          smooth = smooth + smooth_list[[i]]
+        }
+        
+        # add to signals
+        signals[['smooth']] = smooth
+        signals_df = data.frame(signals) # and to dataframe
+        
+        # save to disk
+        export.pupil.dataframe.toDisk(output_mapping, filename_in, path_out, 'mapping')
+        export.pupil.dataframe.toDisk(signals_df, filename_in, path_out, 'signals')
+        
+        # Move the done file to done
+        just_filename_in = tail(strsplit(filename_in, .Platform$file.sep)[[1]],1)
+        cat(paste('     -- Moving the input file to:',  move_path, '\n'))
+        from = file.path(path, just_filename_in, fsep = .Platform$file.sep)
+        to = file.path(move_path, just_filename_in, fsep = .Platform$file.sep)
+        
+        file.rename(from, to)
+        
+        cat(paste('  WRITE DONE! You can open the next file!\n'))
+        
+      })
+    
+    output$plot_input <- renderPlot({
+      ggplot(df_input, aes(x)) +
+        geom_line(aes(y = pupil, colour = "Pupil")) + 
+        geom_line(aes(y = denoised, colour = "Denoised"))
+    })
+    
+    # IMF PLOT
+    # 2nd COLUMN
+      
+      output$plotIMF <- renderPlot({
+        ggplot(IMFs_plot, aes(time, value, colour=variable)) + geom_line() +
+          scale_y_continuous(breaks=baseline_to_add, labels=names_IMF) + 
+          theme(legend.position='none') +
+          coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+      })
+    
+    # COMBINED IMFs 
+    # 3rd COLUMN
+      
+      output$plotComp_base <- renderPlot({
+        if (1 == 1) {
+          ggplot(signals_df, aes(time, base)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        }
+      })
+      
+      output$plotComp_loFreq <- renderPlot({
+        ggplot(signals_df, aes(time, loFreq)) + geom_line() +
+          coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+      })
+      
+      output$plotComp_hiFreq <- renderPlot({
+        ggplot(signals_df, aes(time, hiFreq)) + geom_line() +
+          coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+      })
+      
+      output$plotComp_noiseNonGaussian <- renderPlot({
+        ggplot(signals_df, aes(time, noiseNonNorm)) + geom_line() +
+          coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+      })
+      
+      output$plotComp_noise <- renderPlot({
+        ggplot(signals_df, aes(time, noiseNorm)) + geom_line() +
+          coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+      })
+    
+    
+}
