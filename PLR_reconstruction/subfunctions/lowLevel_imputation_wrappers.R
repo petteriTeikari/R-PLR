@@ -15,7 +15,7 @@ imp.amelia.wrapper = function(pupil_df, t, y, error_frac, weights_norm, filecode
   
 }
 
-imp.imputeTS.wrapper = function(pupil_df, t, y, error_frac, weights_norm, filecodes, method_name, param_imp, debugON = FALSE)  {
+imp.imputeTS.wrapper = function(pupil_df, t, y, error_frac, weights_norm, filecodes, method_name, param_imp = list(), debugON = FALSE)  {
   
   # imputeTS offers 18 different methods for imputing univariate time series
   # see: https://pdfs.semanticscholar.org/cf38/7a44ef973ac37568a8ca482b4add12b646eb.pdf
@@ -102,5 +102,32 @@ debug.imputation.ts = function(t_t, y_ts, y_na_t, na_found_t) {
   plot(t_t[i1:i2], y_ts[i1:i2])
   points(t_t[i1:i2], y_na_vis[i1:i2], col='red') 
   # Kalman gives a bit smoother imputation than other tested methods
+  
+}
+
+impute.with.MissForest = function(vars_as_matrices, pupil_col = 'pupil_toBeImputed') {
+  
+  library(missForest)
+  library(doParallel)  
+  
+  registerDoParallel(cores=4)  
+  getDoParWorkers()
+  
+  # a data matrix with missing values. 
+  # The columns correspond to the variables and
+  # the rows to the observations.
+  matrix_with_missing_value = vars_as_matrices[[pupil_col]]
+  
+  start_time <- Sys.time()
+  filled_matrix <- missForest(matrix_with_missing_value, parallelize='forests') 
+  end_time <- Sys.time(); end_time - start_time
+  # missForest iteration 5 in progress...done!
+  # Time difference of 2.00318 hours
+  # OOBerror = 0.0566
+  
+  matrix_imputed <- filled_matrix$ximp
+  OOBerror <- filled_matrix$OOBerror
+ 
+  return(list(matrix_imputed, OOBerror)) 
   
 }

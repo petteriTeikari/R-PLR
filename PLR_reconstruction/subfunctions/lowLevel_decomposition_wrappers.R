@@ -15,9 +15,9 @@ decomp.EMD.wrapper = function(t, data_in, filecodes, method_name, param_decomp, 
     
 }
 
-decomp.EMD.per.subject = function(t_t, sig, filecodes, method_name, param_decomp, debug) {
+decomp.EMD.per.subject = function(t, y, filecode, method_name, param_decomp, debug) {
   
-  model <- loess(sig ~ t_t, span = 0.1) # estimate the local mean with LOESS
+  model <- loess(y ~ t, span = 0.1) # estimate the local mean with LOESS
   noise.amp <- sd(model$residuals)
   trials <- as.numeric(param_decomp[['EMD_trials']])
   nimf = 10
@@ -27,9 +27,9 @@ decomp.EMD.per.subject = function(t_t, sig, filecodes, method_name, param_decomp
   
   start_time <- Sys.time()
   if (identical(method_name, 'EMD')) {
-    emd.result <- Sig2IMF(sig, t_t, sm = "polynomial", max.imf = 10) # ~1.83 secs
+    emd.result <- y2IMF(y, t, sm = "polynomial", max.imf = 10) # ~1.83 secs
   } else if (identical(method_name, 'CEEMD')) { 
-    emd.result <- CEEMD(sig, t_t, noise.amp, trials, verbose = TRUE) # ~2.84 mins
+    emd.result <- CEEMD(y, t, noise.amp, trials, verbose = FALSE) # ~2.84 mins
     # Error in NextMethod(.Generic) : cannot assign 'tsp' to zero-length vector
 
   } else {

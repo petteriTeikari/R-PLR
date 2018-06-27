@@ -10,106 +10,6 @@ get.files.for.reconstruction = function(data_path, pattern_to_find) {
   return(files_to_process)
 }
 
-# INIT SCRIPT (i.e. HIDE THE BORING STUFF)
-init.reconstruction = function(script.dir, data_path, source_path, IO_path) {
-  
-  # Libraries needed
-  library(ggplot2)
-  library(grid)
-  library(gridExtra)
-  library(reshape2)
-  
-  # https://stackoverflow.com/questions/7049272/importing-excel-files-into-r-xlsx-or-xls
-  # install.packages("readxl") # CRAN version
-  library(readxl)
-  
-  # IMPUTATION
-  # install.packages("Amelia")
-  # library(Amelia)
-  # install.packages("imputeTS")
-  library(imputeTS)
-  
-  # DENOISING
-  # install.packages("TSrepr")
-  # library(TSrepr) 
-  # install.packages("pdSpecEst")
-  # library(pdSpecEst)
-  # install.packages("tvd")
-  # library(tvd)
-  # install.packages("robustgam")
-  # library(robustgam)
-  # install.packages("wmtsa")
-  library(wmtsa)
-  # install.packages("ifultools")
-  library(ifultools)
-  # install.packages("Rwave")
-  library(Rwave)
-  
-  # DECOMPOSITION
-  # install.packages("EMD")
-  library(EMD)
-  # install.packages("hht")
-  library(hht)
-  
-  # SOURCE SUBFUNCTIONS
-  source(file.path(source_path, 'single_file_reconstruction.R', fsep = .Platform$file.sep))
-  source(file.path(source_path, 'get_timing_stats_of_inputs.R', fsep = .Platform$file.sep))
-  source(file.path(source_path, 'resample_reconstructed_PLR.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'export_pupil_dataframe_toDisk.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'define_whenLightWasOn.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'compute_PLR_derivatives.R', fsep = .Platform$file.sep))
-  
-  source(file.path(source_path, 'create_PLR_dataset_matrix.R', fsep = .Platform$file.sep))
-  
-  source(file.path(IO_path, 'import_binDefinitions.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'define_baseline_points.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'normalize_PLR.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'normalize_low_level.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'get_baseline_period_from_bins.R', fsep = .Platform$file.sep))
-  
-  source(file.path(IO_path, 'get_codes_from_filenames.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'trim_master_data_with_subject_codes.R', fsep = .Platform$file.sep))
-  
-  source(file.path(IO_path, 'read_theMasterExcel.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'clean_excelSheet.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'combine_excelDataFramesToOne.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'add_customVariablesToDataframe.R', fsep = .Platform$file.sep))
-  
-  source(file.path(source_path, 'dataset_modeling_wrapper.R', fsep = .Platform$file.sep))
-  source(file.path(source_path, 'plot_functions.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'compute_power_spectrum.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'compute_timeFreq.R', fsep = .Platform$file.sep))
-  
-  
-  # Debugging the "SERI syntax"
-  data_path_out = file.path(data_path, '..', 'recon', fsep = .Platform$file.sep)
-  if (dir.exists(data_path_out) == FALSE) {
-    cat('Creating the directory for DATA output')
-    dir.create(data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-  }
-  
-  data_resampled_path_out = file.path(data_path, '..', 'recon_resampled', fsep = .Platform$file.sep)
-  if (dir.exists(data_resampled_path_out) == FALSE) {
-    cat('Creating the directory for DATA output')
-    dir.create(data_resampled_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-  }
-  
-  data_trimmed_path_out = file.path(data_path, '..', 'recon_trimmed', fsep = .Platform$file.sep)
-  if (dir.exists(data_trimmed_path_out) == FALSE) {
-    cat('Creating the directory for DATA output')
-    dir.create(data_trimmed_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-  }
-  
-  data_temp_path_out = file.path(data_path, '..', 'recon_temp', fsep = .Platform$file.sep)
-  if (dir.exists(data_temp_path_out) == FALSE) {
-    cat('Creating the directory for DATA output')
-    dir.create(data_temp_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-  }
-  
-  return(list(data_path_out, data_resampled_path_out, data_trimmed_path_out, data_temp_path_out))
-  
-}
-
 # INPUT LIMITS
 dataset.lims = function(time_range, hard_limits, debugON, fps = 30) {
   
@@ -136,7 +36,7 @@ dataset.lims = function(time_range, hard_limits, debugON, fps = 30) {
   
 }  
 
-# PLOT SUBFUNCTION
+# PLOT and FILTER SUBFUNCTION
 plot.and.filter.time.lims = function(mat_range, time_limits, hard_limits, files_to_process, fps, debugON) {
   
   # Melt for plotting
@@ -260,61 +160,67 @@ estimate.light.range.for.trimmed = function(list_of_PLR_dataframes) {
   
 }
 
-combine.list.of.dataframes = function(list_of_PLR_dataframes, vars_to_keep, normalize = TRUE) {
+combine.list.of.dataframes = function(list_of_PLR_dataframes, vars_to_keep, normalize = FALSE) {
   
   number_of_files = length(list_of_PLR_dataframes)
-  no_of_samples = length(list_of_PLR_dataframes[[1]]$X)
+  no_of_samples = length(list_of_PLR_dataframes[[1]]$time)
+  if (no_of_samples == 0) {
+    warning('No Samples found from', list_of_PLR_dataframes)
+  }
   
-  norm_name = 'pupil_norm'
-  col_names = c(vars_to_keep, norm_name)
-  
-  # init list
+  col_names = c(vars_to_keep)
   list_out = list()
-  # number_of_files = 4
   
   for (i in 1 : number_of_files) {
-    
-    # cat(' .. #', i, number_of_files, ' ')
-    
-    # from list to data frame
-    dataframe = list_of_PLR_dataframes[[i]]
-    
-    # subset of desired variables
-    df_subset = dataframe[vars_to_keep]
-    
-    # define baseline
-    bins = import.binDefinitions(config_path)
-    baseline_period = get.baseline.period.from.bins(bins)
-    baseline_period = c(-5, 0)
-    b_i1 = which.min(abs(baseline_period[1] - df_subset$time_onsetZero))
-    b_i2 = which.min(abs(baseline_period[2] - df_subset$time_onsetZero))
-    baseline = median(df_subset$pupil_outlier_corrected[b_i1:b_i2], na.rm = TRUE)
-    
-    if (normalize) {
-      df_subset[[norm_name]] = normalize.low.level(df_subset$pupil_outlier_corrected, 
-                                                   baseline, normalize_method = 'hybrid', if_pupil_value = TRUE)
-    }
-    
+    dataframe = list_of_PLR_dataframes[[i]] # from list to data frame
+    df_subset = dataframe[vars_to_keep] # subset of desired variables
+  
     for (j in 1 : length(col_names)) {
-      
+      # preallocate the matrix on first file
       if (i == 1) {
-        
-        # preallocate the matrix on first file
         list_out[[col_names[j]]] = matrix(nrow=no_of_samples, ncol=number_of_files)
         vector = df_subset[[col_names[j]]]
         list_out[[col_names[j]]][,i] = vector
-        
       } else {
-        
         vector = df_subset[[col_names[j]]]
         list_out[[col_names[j]]][,i] = vector
-        
       }
     }
   }
-  
   return(list_out)
   
+  
+}
+
+combine.input.with.reconstruction = function(input_df, recon_df, pupil_string) {
+  
+  combined_df = cbind(input_df, recon_df)
+  
+  # TODO! prone to errors
+  # If you change just naming in imputation part, this gets problematic
+  error_string = paste0(pupil_string, '_error_frac')
+  error_string = gsub('pupil_', '', error_string) 
+  
+  if (length(combined_df[[error_string]]) == 0) {
+    warning('No error selected properly from combined_df! Check that your strings are correct')
+  }
+  
+  if (length(combined_df[[pupil_string]]) == 0) {
+    warning('No pupil selected properly from combined_df! Check that your strings are correct')
+  }
+  
+  # and update the pupil and error
+  combined_df[['pupil']] = combined_df[[pupil_string]]
+  combined_df[['error_fractional']] = combined_df[[error_string]]
+
+  # compute new error
+  pupil_vector = combined_df[['pupil']]
+  error_frac = combined_df[[error_string]]
+  error_new = pupil_vector * error_frac
+  combined_df[['error']] = error_new
+  
+  return(combined_df)
+    
 }
 
 convert.vectors.into.dataframe = function(t, y, error_frac, weights_norm, filecode) {
@@ -358,6 +264,12 @@ convert.vectors.to.time.series.object = function(t, y, filecodes, error_frac = N
   frequency = 1 # time-series often defined for month, so in other applications you could
   # have 10 years of data with frequency then being 10 if you are interested
   # in annual patterns
+  
+  if (is.null(fps)) {
+    # Dirty fix
+    warning('Your fps is not defined now, setting it to 30 fps')
+    fps = 30
+  }
   
   # Again time series object will assume that your data would come with time stamps whereas 
   # our pupil recording only have the time vector in seconds, so make this conform with the

@@ -1,6 +1,8 @@
-create.PLR.dataset.matrix = function(data_path_out, data_resampled_path_out, data_trimmed_path_out, 
+create.PLR.dataset.matrix = function(data_path_out, data_resampled_path_out, data_trimmed_path_out, config_path,
                                      filename_path, fps, time_lims, time_lims_in, exclusion_boolean, time_new, hard_limits,
-                                     combine_mode = 're_define_time', useAdaptive = FALSE, jitter = FALSE) {
+                                     combine_mode = 're_define_time', useAdaptive = FALSE, jitter = FALSE, 
+                                     normalize = TRUE, 
+                                     value_operator = 'median', normalize_method = 'hybrid') {
   
   data_frame_in = read.csv(filename_path)
   
@@ -45,7 +47,7 @@ create.PLR.dataset.matrix = function(data_path_out, data_resampled_path_out, dat
     var_names = colnames(data_frame_in)
     no_of_vars = length(var_names)
     
-    vars_to_excl = c('time', 'X', 'time_onsetZero')
+    vars_to_excl = c('time', 'X', 'X.1', 'time_onsetZero')
     to_process = is.na(match(var_names, vars_to_excl))
     vars_to_process = var_names[to_process]
     
@@ -87,6 +89,12 @@ create.PLR.dataset.matrix = function(data_path_out, data_resampled_path_out, dat
   t = data_frame_in$time
   diff_in_seconds = t[light_onset_blue_adapt] - t[light_onset_blue]
   data_frame_out$time_maxDeriv_zero = data_frame_out$time_onsetZero - diff_in_seconds
+  
+  ## NORMALIZATION
+  if (normalize) {
+    data_frame_out = normalize.PLR.reduced(data_frame_out, config_path, 
+                                           value_operator = value_operator, normalize_method = normalize_method)
+  }
   
   return(data_frame_out)
   

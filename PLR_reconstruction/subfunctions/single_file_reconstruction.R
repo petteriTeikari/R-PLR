@@ -1,13 +1,11 @@
 single.file.reconstruction = function(t, y, error_frac, filecode, 
                                       master_data, found_from_master, param, vars_to_keep,
-                                      debugTrim = FALSE) {
+                                      operator = 'imputation', debugTrim = FALSE) {
   
+  # trim to make functions run faster so you can test the code
   if (debugTrim) {
-    
     margins = 450 # 15*30
     zero_ind = which(t == 0)
-    
-    # trim to make functions run faster so you can test the code
     t = t[1 : 300]
     y = y[1 : 300]
     error_frac = error_frac[1 : 300]
@@ -46,59 +44,63 @@ single.file.reconstruction = function(t, y, error_frac, filecode,
     param[['denoising']][['debug_subject_to_plot']] = 'PLR4229'
     param[['decomposition']][['EMD_trials']] = 100
     
-  # IMPUTATION ---------------------------------------------------------------- 
-  
-    imputed = data.imputation.wrapper(pupil_df, t, y, error_frac, weights_norm, filecode, param[['imputation']], master_data, found_from_master) 
+  # OPERATIONS
       
-  # DENOISING ---------------------------------------------------------------- 
-  
-    # denoised = data.denoising.wrapper(pupil_df, imputed, t, y, error_frac, weights_norm, filecode, param[['denoising']], master_data, found_from_master)
-  
-  # DECOMPOSITION ---------------------------------------------------------------- 
-
-    decomposed = data.decomposition.wrapper(pupil_df, imputed, t, y, error_frac, weights_norm, filecode, param[['decomposition']], master_data, found_from_master)
-  
-  # JOINT ---------------------------------------------------------------- 
-    
-    # joint = data.joint.modeling.wrapper(pupil_df, t, y, error_frac, weights_norm, filecode, param[['joint']], master_data, found_from_master)
-    
-  # PACK Pupil Vectors to output ---------------------------------------------------------------- 
-    
-    # TODO! Make adaptive if you change the methods above!
-    # output = list()
-    
-    # IMPUTATION
-    # imputed_name = param[['imputation']][['methods']][[1]]
-    # output[[imputed_name]] = imputed[[imputed_name]]$pupil
-    # output[[paste(imputed_name, 'error', sep='_')]] = imputed[[imputed_name]]$error
-    
-    # DENOISING
-    
-    # DECOMPOSITION
-    
-    # JOINT MODELING
-    
-    names_decomp = names(decomposed) 
-    decomp_out = decomposed[[names_decomp[1]]] # list
-    str(decomp_out)
-    
-    # decomp_df = data.frame(residue=decomp_out$residue)
-    
-    decomp_list_out = list()
-    EMD_METHOD = param[['decomposition']][['methods']][1]
-    no_of_imfs_saved = dim(decomp_out$imf)[2]
-    
-    for (i in 1 : no_of_imfs_saved) {
-      var_name = paste(EMD_METHOD, 'IMF', i, sep='_')
-      decomp_list_out[[var_name]] = decomp_out$imf[,i]
+    if (identical(operator, 'imputation')) {
+      
+      # IMPUTATION ---------------------------------------------------------------- 
+      imputed = data.imputation.wrapper(pupil_df, t, y, error_frac, weights_norm, filecode, param[['imputation']], master_data, found_from_master) 
+      
+      # convert the list to output df
+      method_names = param[['imputation']][['methods']]
+      impute_df_out = list()
+      for (m in 1 : length(method_names)) {
+        impute_df_out[[paste0('pupil_', method_names[m])]] = imputed[[method_names[m]]]$pupil
+        impute_df_out[[paste0(method_names[m], '_error_frac')]] = imputed[[method_names[m]]]$error
+      }
+      
+      # Returns only the imputed vector(s), and the error(s), will be combined with the 
+      # full input outside of this function
+      impute_df_out = data.frame(impute_df_out)
+      
+      return_df = impute_df_out
+      
+      
+    } else if (identical(operator, 'decomposition')) {
+      
+      # DECOMPOSITION ---------------------------------------------------------------- 
+      decomposed = data.decomposition.wrapper(pupil_df, imputed, t, y, error_frac, weights_norm, filecode, param[['decomposition']], master_data, found_from_master)
+      
+      names_decomp = names(decomposed) 
+      decomp_out = decomposed[[names_decomp[1]]] # list
+      str(decomp_out)
+      
+      decomp_list_out = list()
+      EMD_METHOD = param[['decomposition']][['methods']][1]
+      no_of_imfs_saved = dim(decomp_out$imf)[2]
+      
+      for (i in 1 : no_of_imfs_saved) {
+        var_name = paste(EMD_METHOD, 'IMF', i, sep='_')
+        decomp_list_out[[var_name]] = decomp_out$imf[,i]
+      }
+      
+      var = 'residue'
+      decomp_list_out[[var]] = decomp_out[[var]]
+      decomp_df = data.frame(decomp_list_out)
+      
+      return_df = decomp_df
+      
+    } else if (identical(operator, 'denoising')) {
+      
+      # denoised = data.denoising.wrapper(pupil_df, imputed, t, y, error_frac, weights_norm, 
+      #                                   filecode, param[['denoising']], master_data, found_from_master)
+      
+    } else {
+      warning('Your operator is not valid = ', operator, ' , you did a typo?')
     }
-    
-    var = 'residue'
-    decomp_list_out[[var]] = decomp_out[[var]]
-    
-    decomp_df = data.frame(decomp_list_out)
-    
-    return(decomp_df)
+      
+  # RETURN
+  return(return_df)  
       
 }
 
