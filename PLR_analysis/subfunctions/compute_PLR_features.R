@@ -1,4 +1,4 @@
-compute.PLR.features = function(data_frame_norm, bins, color, 
+compute.PLR.features = function(data_frame_in, bins, color, 
                                 normalize_on, normalize_method, normalize_indiv_colors, 
                                 baseline_period) {
   
@@ -8,23 +8,7 @@ compute.PLR.features = function(data_frame_norm, bins, color,
   
   # Define when light was on
   verbose = FALSE # TODO! now hard-coded
-  light_range = define.whenLightWasOn(data_frame_norm, verbose)
-  
-  # Instead of for-looping, in R, the lapply family is 
-  # more efficient, https://nicercode.github.io/guides/repeating-things/
-  # feats = lapply(seq_along(bin_names), function(y, n, i) { paste(n[[i]], y[[i]]) }, y=data_frame_norm, n=bins)
-  # https://stackoverflow.com/questions/9950144/access-lapply-index-names-inside-fun
-  
-  # Normalize if desired
-  if (normalize_indiv_colors == TRUE) {
-    cat('  -- Normalizing the PLR invidually for both colors, now for ', color, '\n')
-    data_frame_norm = normalize_PLR(data_frame_norm, color, 
-                                normalize_on, normalize_method, normalize_indiv_colors, 
-                                baseline_period, light_range)
-    
-    # Save this to disk if needed
-    export.pupil.dataframe.toDisk(data_frame_norm, filename_path, data_norm_path_out, 'normalized_indiv')
-  }
+  light_range = define.whenLightWasOn(data_frame_in, verbose)
     
   # Initialize as list
   features <- list()
@@ -33,23 +17,26 @@ compute.PLR.features = function(data_frame_norm, bins, color,
   # Cycle through each bin
   options(warn = -1) # suppress warnings [Warning in rma(y ~ t, abs(uncert_in), method = "FE") :
                                          # Studies with NAs omitted from model fitting.]
+  
+  # GO THROUGH THE FEATURED DEFINED in bins.csv
   for (i in 1:length(bin_names)) {
-
+    
     # debug
     bin_name = bin_names[i]
     method = bins$Method[i]
     timingMethod = bin_timingMethod[i]
     startTime = bins$Start[i]
     endTime = bins$End[i]
+    startString = bins$StartString[i]
     
     # Get the corresponding points of the bin
     # i.e. Abstractify the rather messy code to determine this
-    data_points_df = get.datapoints.per.bin(data_frame_norm, timingMethod, startTime, endTime,
-                                            bins$StartString[i], light_range, color)
+    data_points_df = get.datapoints.per.bin(data_frame_in, timingMethod, startTime, endTime,
+                                            startString, light_range, color)
     
-    out = process.all.bins(data_frame_norm, bin_names[i], bin_methods[i], data_points_df,
-                                bin_timingMethod[i], bins$Start[i], bins$End[i],
-                                bins, i, light_range, color, features, data_bins)
+    out = process.all.bins(data_frame_in, bin_name, method, data_points_df,
+                           timingMethod, startTime, endTime,
+                           bins, i, light_range, color, features, data_bins)
     
     features = out[[1]]
     data_bins = out[[2]]
@@ -64,7 +51,7 @@ compute.PLR.features = function(data_frame_norm, bins, color,
 
 # SUBFUNCTION for
 # GO THROUGH THE BINS HERE
-process.all.bins = function(data_frame_norm, bin_name, method, data_points_df, 
+process.all.bins = function(data_frame_in, bin_name, method, data_points_df, 
                             timingMethod, startTime, endTime, 
                             bins, i, light_range, color, features, data_bins) {
   

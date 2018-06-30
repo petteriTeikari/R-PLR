@@ -353,7 +353,7 @@ linear.fit.wrapper = function(t, y, uncert_in) {
   
   # No we cannot have any zeroes in the uncertainty vector, set them to NA, and interpolate
   # the same thing for NAs and Infs
-  zero_indices = (0 == uncert_in)
+  zero_indices = (uncert_in == 0)
   no_of_zeroes = sum(zero_indices)
   
   length_in = length(uncert_in)
@@ -363,23 +363,43 @@ linear.fit.wrapper = function(t, y, uncert_in) {
     uncert_in <- na.approx(uncert_in)
   }
   length_out = length(uncert_in)
-  if (length_out != length_in) {
-    options(warn = 1)
-    warning('Your uncertainty length changed after zero interpolation. A bug here!')
-    options(warn = -1)
-  }
   
-  stdev_slope = NA
   value = NA
-
-  fit_w_se = rma(y~t, abs(uncert_in), method="FE")
+  stdev_slope = NA
+  intercept = NA
+  intercept_se = NA
   
-  intercept = fit_w_se$b[1]
-  intercept_se = fit_w_se$se[1]
-  slope = fit_w_se$b[2]
-  stdev_slope = fit_w_se$se[2]
+  linregr = lm(y~t)
+  value = linregr$coefficients[2]
+  intercept = linregr$coefficients[1]
   
-  value = slope
+  # if (length_out != length_in) {
+  #   options(warn = 1)
+  #   warning('Your uncertainty length changed after zero interpolation. A bug here! Using just linear regression')
+  #   # without weights then
+  #   linregr = lm(y~t)
+  #   value = linregr$coefficients[2]
+  #   intercept = linregr$coefficients[1]
+  #   options(warn = -1)
+  #   
+  # } else {
+  #   
+  #   # TODO!
+  #   # Try/Catch later!
+  #   # Getting
+  #   # Error in rma(y ~ t, abs(uncert_in), method = "FE") : 
+  #   # Ratio of largest to smallest sampling variance extremely large. Cannot obtain stable results. 
+  #   # 
+  #   # Error in rma(y ~ t, abs(uncert_in), method = "FE") : 
+  #   # Length of 'yi' and 'vi' (or 'sei') vectors are not the same. 
+  #   fit_w_se = rma(y~t, abs(uncert_in), method="FE")
+  #   intercept = fit_w_se$b[1]
+  #   intercept_se = fit_w_se$se[1]
+  #   slope = fit_w_se$b[2]
+  #   stdev_slope = fit_w_se$se[2]
+  #   value = slope
+  #   
+  # }
   
   # library(ggplot2)
   # ggplot(data.frame(t, y), 

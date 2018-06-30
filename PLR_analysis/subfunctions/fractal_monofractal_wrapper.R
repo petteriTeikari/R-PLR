@@ -1,4 +1,4 @@
-  fractal.DFA.wrapper = function(t, y, plot_on = FALSE, dfa.package = 'fractal') {
+  fractal.DFA.wrapper = function(t, y, plot_on = FALSE, dfa.package = 'nonlinearTseries') {
     
     # To compute H (the generalized Hurst exponent) that is directly 
     # related to fractal dimension, D, and is a measure of a data series' 
@@ -30,17 +30,14 @@
           # THEN
           # sudo apt-get install libglu1-mesa-dev
       
-        dfa_nlts = dfa(y, window.size.range = c(50, 300), npoints = 20, do.plot = TRUE)
-        H_est = estimate(dfa_nlts, do.plot=TRUE) # 1.742489?
+        dfa_nlts = dfa(y, window.size.range = c(50, 300), npoints = 20, do.plot = FALSE)
+        H_est = estimate(dfa_nlts, do.plot=FALSE) # 1.742489?
           # TODO! Check if it is correct
         
     } else if (identical(dfa.package,'fractal')) {
       
       # FROM 'FRACTAL' PACKAGE
       # ======================
-      
-        # install.packages("fractal")
-        library(fractal)
       
         DFA.walk <- DFA(y, detrend="poly1", sum.order=1)
         
@@ -78,11 +75,18 @@
     exp_term_ub = -3.10*log(M) + 4.47
     ub = exp(exp_term_ub) + 0.5
     
+    error = NA
+    
     # TODO
     # goodness-of-fit, some exponent is always returned independent 
     # of how well the line fits to the data!
 
-    return(H_est)
+    # RETURN
+    df_out = data.frame(value = H_est, uncertainty = error, name = 'DFA_Hest',
+                        bin_start = 1, bin_end = length(y), offset = NA,
+                        stringsAsFactors = FALSE)
+    
+    return(df_out)
  
     # THEORY (DFA) ------------------------------------------------------------------
     

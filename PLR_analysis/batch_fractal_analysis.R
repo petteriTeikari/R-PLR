@@ -1,7 +1,13 @@
 # Initialize --------------------------------------------------------------
 
   library(doParallel)  
+
+  # install.packages("MFDFA")
+  library(MFDFA)
   
+  # install.packages("fractal")
+  library(fractal)
+
   # Define Paths
   script.dir <- dirname(sys.frame(1)$ofile)
   
@@ -25,7 +31,7 @@
   
   # Parameters
   param = list()
-  param[['no_of_cores_to_use']] = detectCores()
+  param[['no_of_cores_to_use']] = detectCores() 
   
 # COMPUTATIONS
 
@@ -35,5 +41,6 @@
   }, mc.cores = param[['no_of_cores_to_use']])
   end_time <- Sys.time()
   end_time - start_time # 5.367922 mins with home AMD (4 cores, 388 files)
+                        # 43.21813 secs with personal i7 (8 cores)
   
   

@@ -10,9 +10,6 @@
     # df_fractal = read.csv(file.path(fractaldatapath, 'fractaldata.csv', fsep = .Platform$file.sep))
     # y_multifractal = df_fractal$multifractal
     
-    # install.packages("MFDFA")
-    library(MFDFA)
-    
     scmin=16;
     scmax=1024;
     scres=19;
@@ -33,14 +30,34 @@
       #   • spec Multifractal spectrum (α and f(α))
       #   • Fq Fluctuation function.
     
+    # How to define?
+    error = NA
+    
     # We can get some scalars to describe the signal
-    mfdfa[['spectrum_width']] = max(mfdfa$spec$hq) - min(mfdfa$spec$hq)
+    n = 2
+    list_of_dfs_out = vector("list", n) 
+    
+    list_of_dfs_out[[1]] = data.frame(value = max(mfdfa$spec$hq) - min(mfdfa$spec$hq),
+                                     uncertainty = error,
+                                     name = 'MFDFA_spectrum_width_hq',
+                                     bin_start = 1, bin_end = length(y),
+                                     offset = NA,
+                                     stringsAsFactors = FALSE)
+    
+    max_index = which.max(mfdfa$spec$Dq)
+    list_of_dfs_out[[2]] = data.frame(value = mfdfa$spec$hq[max_index],
+                                      uncertainty = error,
+                                      name = 'MFDFA_spectrum_peak_hq',
+                                      bin_start = 1, bin_end = length(y),
+                                      offset = NA,
+                                      stringsAsFactors = FALSE)
+    
     
     if (plot_on) {
       plot.mfdfa(mfdfa)
     }
     
-    return(mfdfa)
+    return(list(mfdfa, list_of_dfs_out))
     
   }
   

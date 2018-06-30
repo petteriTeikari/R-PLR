@@ -5,12 +5,12 @@ normalize.PLR.reduced = function(df, config_path,
   # define baseline
   bins = import.binDefinitions(config_path)
   baseline_period = get.baseline.period.from.bins(bins)
-  baseline_period = c(-5, 0) # overwrite
-  # warning('Manual overwrite of the baseline from bins, TODO! fix this')
+  
   b_i1 = which.min(abs(baseline_period[1] - df$time_onsetZero))
   b_i2 = which.min(abs(baseline_period[2] - df$time_onsetZero))
   
-  baseline_vector = df$pupil_outlier_corrected[b_i1:b_i2]
+  pupil_col = 'pupil'
+  baseline_vector = df[[pupil_col]][b_i1:b_i2]
   
   # the stats of the vector
   baseline_stats = data.frame(mu = mean(baseline_vector, na.rm = TRUE),
@@ -31,6 +31,7 @@ normalize.PLR.reduced = function(df, config_path,
   vars_names_in = colnames(df)
   
   # these variables are not meant to be normalized
+  # TODO!
   # REMEMBER: that if you add new variables to data_frame, this part
   # is not exactly adaptive
   vars_to_excl = c('frame', 'time', 'x', 'y', 'X.', 'X', 'X.1', 'X.2', 'X.3',
@@ -42,7 +43,21 @@ normalize.PLR.reduced = function(df, config_path,
                    'exluded_points', 'included_points', 
                    'exluded_points_2ndPass', 'included_points_2ndPass',
                    'handplaced_points',
-                   'time_onsetZero', 'time_maxDeriv_zero')
+                   'time_onsetZero', 'time_maxDeriv_zero',
+                   'imputeTS_kalman_StructTS_error_frac',
+                   'outlier_labels', 'CEEMD_IMF_1',
+                   'CEEMD_IMF_2', 'CEEMD_IMF_3', 'CEEMD_IMF_4',
+                   'CEEMD_IMF_5', 'CEEMD_IMF_6', 'CEEMD_IMF_7',
+                   'CEEMD_IMF_8', 'CEEMD_IMF_9', 'CEEMD_IMF_10',
+                   'CEEMD_IMF_11', 'residue', 'hinstfreq_1',
+                   'hinstfreq_2', 'hinstfreq_3', 'hinstfreq_4',
+                   'hinstfreq_5', 'hinstfreq_6', 'hinstfreq_7',
+                   'hinstfreq_8', 'hinstfreq_9', 'hinstfreq_10',
+                   'hinstfreq_11', 'hamp_1', 'hamp_2', 'hamp_3',
+                   'hamp_4', 'hamp_5', 'hamp_6', 'hamp_7', 'hamp_8', 
+                   'hamp_9', 'hamp_10', 'hamp_11', 'noiseNorm', 
+                   'noiseNonNorm', 'hiFreq', 'loFreq', 'base', 'smooth',
+                   'oscillations')
   
   to_keep_indices = is.na(match(vars_names_in, vars_to_excl))
   vars_to_normalize = vars_names_in[to_keep_indices]

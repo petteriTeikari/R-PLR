@@ -1,4 +1,5 @@
 plot.PLRwithFeatures = function(data_frame_norm, bins, features_blue, features_red,
+                                fractal_features, timefreq_features,
                                 data_bins_blue, data_bins_red, 
                                 normalize_on, normalize_method, normalize_indiv_colors, 
                                 baseline_period, light_range,
@@ -7,6 +8,9 @@ plot.PLRwithFeatures = function(data_frame_norm, bins, features_blue, features_r
   # TODO!
   # errors to absolute (just in case)
   data_frame_norm$error = abs(data_frame_norm$error)
+  
+  # TODO!
+  # fractal_features, timefreq_features
   
   no_of_bins = length(bins$Name)
   
@@ -44,32 +48,32 @@ plot.PLRwithFeatures = function(data_frame_norm, bins, features_blue, features_r
   # The Plot of the all trace
   # y_lims = c(-60, 20)
   
-  # https://stackoverflow.com/questions/33768613/ggplot-legend-not-working-with-scale-colour-manual
-  p = ggplot(data_frame_norm, 
-             aes(x=data_frame_norm$time, y=data_frame_norm$pupil)) + 
-             # geom_line(aes(y=data_frame_norm$raw_norm, colour='Raw'), alpha = 0.4) + 
-             geom_line(aes(y=data_frame_norm$outlierfree_norm, colour='Outlier filtered'), alpha = 0.4) + 
-             geom_line(aes(y=data_frame_norm$outlier_corrected_norm, colour='Outlier corected'), alpha = 0.9) + 
-             geom_line(aes(y=data_frame_norm$pupil, colour='Spline Reconstruction'), alpha = 0.9)
-             # geom_line(aes(y=data_frame_norm$pupil_raw_norm_loess, colour=paste('LOESS, span=', span_value)))
-             
-             # TODO! Some ggplot magic
-             # scale_color_discrete(name = "PLR Traces", values = 
-             #                        c("Outlier free" = "green", 
-             #                          "Reconstruction" = "black", 
-             #                          paste('LOESS, span=', span_value)) = "blue")
-             # ylim(y_lims)
-             
-  
-    print(p)
-    
-    # write to disk
-    filename_out = sub('.csv', paste('_PLR.png', sep = ''), just_filename)
-    path_out = file.path(data_images_path_out, filename_out, sep = .Platform$file.sep)
-    path_out = sub('//', '', path_out) # why // at the end?
-    path_out_PLR = file.path(path_out, 'PLR', filename_out, sep = .Platform$file.sep)
-    ggsave(path_out, p, width = 42.67, height = 24, units = "cm")
-  
+  # # https://stackoverflow.com/questions/33768613/ggplot-legend-not-working-with-scale-colour-manual
+  # p = ggplot(data_frame_norm, 
+  #            aes(x=data_frame_norm$time, y=data_frame_norm$pupil)) + 
+  #            # geom_line(aes(y=data_frame_norm$raw_norm, colour='Raw'), alpha = 0.4) + 
+  #            geom_line(aes(y=data_frame_norm$outlierfree_norm, colour='Outlier filtered'), alpha = 0.4) + 
+  #            geom_line(aes(y=data_frame_norm$outlier_corrected_norm, colour='Outlier corected'), alpha = 0.9) + 
+  #            geom_line(aes(y=data_frame_norm$pupil, colour='Spline Reconstruction'), alpha = 0.9)
+  #            # geom_line(aes(y=data_frame_norm$pupil_raw_norm_loess, colour=paste('LOESS, span=', span_value)))
+  #            
+  #            # TODO! Some ggplot magic
+  #            # scale_color_discrete(name = "PLR Traces", values = 
+  #            #                        c("Outlier free" = "green", 
+  #            #                          "Reconstruction" = "black", 
+  #            #                          paste('LOESS, span=', span_value)) = "blue")
+  #            # ylim(y_lims)
+  #            
+  # 
+  #   print(p)
+  #   
+  #   # write to disk
+  #   filename_out = sub('.csv', paste('_PLR.png', sep = ''), just_filename)
+  #   path_out = file.path(data_images_path_out, filename_out, sep = .Platform$file.sep)
+  #   path_out = sub('//', '', path_out) # why // at the end?
+  #   path_out_PLR = file.path(path_out, 'PLR', filename_out, sep = .Platform$file.sep)
+  #   ggsave(path_out, p, width = 42.67, height = 24, units = "cm")
+  # 
     
   # BLUE
   combined_bins_for_plot_blue = combine.feats.with.same.bins(data_frame_norm, bins, features_blue, 

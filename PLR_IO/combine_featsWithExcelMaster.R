@@ -35,6 +35,12 @@ combine.featsWithExcelMaster = function(files, master_data) {
       derived_feats_names_blue = colnames(new_feats_per_file)
     } else if (identical(color, 'red')) {
       derived_feats_names_red = colnames(new_feats_per_file)
+      
+    # Quick'n'dirty fix for plotting
+    # TODO! You could keep global totally separate
+    } else if (identical(color, 'global')) {
+      derived_feats_names_blue = colnames(new_feats_per_file)
+      derived_feats_names_red = colnames(new_feats_per_file)
     }
     
     # if the variable names are not found from the Master Sheet, add

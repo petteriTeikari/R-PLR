@@ -1,5 +1,6 @@
 process.single.PLR.for.analysis = function(filename_path, data_path_out, data_norm_path_out, data_images_path_out,
-                                           bins, normalize_on, normalize_method, normalize_indiv_colors, 
+                                           data_fractal_out, data_timefreq_out, config_path, normalize_on, 
+                                           normalize_method, normalize_indiv_colors, 
                                            baseline_period) {
   
   # Separate the fullname to path and filename
@@ -11,71 +12,65 @@ process.single.PLR.for.analysis = function(filename_path, data_path_out, data_no
   
   filename_sep = strsplit(filename_path, .Platform$file.sep)[[1]]
   just_filename = tail(filename_sep, n=1)
+  filecode = strsplit(just_filename, '_')[[1]][1]
   just_path = gsub(just_filename, '', filename_path)
-  cat(' Analyzing file = ', just_filename, ' ')
+  cat(' Analyzing file = ', just_filename, ' \n')
   
   # Import the file
-  # file_format = "_BR_filt" # The "SERI Format at the moment"
-  # data_frame_in = import.pupildata(just_path, filename, file_format)
-  
-  # Don't really need the "SERI parser" of the past as we are just operating on
-  # saved data frames with all the column names there
   data_frame_in = read.csv(filename_path)
   
-  # Define when light was on 
-  verbose = FALSE
-  light_range = define.whenLightWasOn(data_frame_in, verbose)
-
-  # get baseline period from bins
-  baseline_period = get.baseline.period.from.bins(bins)
-    # TODO! If you want to test the effect of different baseline periods,
-    # add some switch from outside to override this
+  bins = import.binDefinitions(config_path)
+  light_range = define.whenLightWasOn(data_frame_in, verbose = FALSE)
   
-  # Normalized here already if you do not have the normalize_indiv_colors as TRUE,
-  # i.e. you want to normalize only based on the pre-"light onset" period of the blue light
-  # and not invidually both for both colors
-  if (normalize_indiv_colors == FALSE) {
-    cat('  -- Normalizing the PLR using just the BLUE BASELINE \n')
-    color = 'blue'
-    data_frame_norm = normalize_PLR(data_frame_in, color, bins, 
-                                  normalize_on, normalize_method, normalize_indiv_colors, 
-                                  baseline_period, light_range)
-    
-    # Save this to disk if needed
-    export.pupil.dataframe.toDisk(data_frame_norm, filename_path, data_norm_path_out, 'normalized')
-    
-  } else {
-    data_frame__norm = data_frame_in
-    
-  }
-  
-  # Do the Computations, i.e. handcrafted features
-  out_blue = compute.PLR.features(data_frame_norm, bins, "blue", 
+  # BINS-based FEATURE
+  # BLUE
+  # ==================
+  cat('  Traditional time domain features:')  
+  cat(' BLUE ')  
+  out_blue = compute.PLR.features(data_frame_in, bins, color="blue", 
                                        normalize_on, normalize_method, normalize_indiv_colors, 
                                        baseline_period)
-  
     features_blue = out_blue[[1]]
     data_bins_blue = out_blue[[2]]
   
-  out_red = compute.PLR.features(data_frame_norm, bins, "red", 
+  cat('RED\n')  
+  out_red = compute.PLR.features(data_frame_in, bins, color="red", 
                                       normalize_on, normalize_method, normalize_indiv_colors, 
                                       baseline_period)
-  
     features_red = out_red[[1]]
     data_bins_red = out_red[[2]]
   
+  # Compute Fractal features
+  cat('    Fractal features\n')  
+  fractal_features = file.fractal.wrapper(filename_path, data_fractal_out, param, debug = FALSE,
+                                          dfa.package = 'fractal', from_dataframe = TRUE, 
+                                          df_in = data_frame_in, filecode = filecode)
   
+  # Compute Time-Frequency analysis
+  cat('      Time-Frequency features\n')  
+  timefreq_feats = file.timeFreq.wrapper(filename_path, data_timefreq_out, param, debug = FALSE, from_dataframe = TRUE, 
+                                            df_in = data_frame_in, filecode = filecode)
+  
+  timefreq_features = list(data.frame(value = 1,
+                            uncertainty = NA,
+                            name = 'timefreq_dummy',
+                            bin_start = 1, bin_end = 2,
+                            offset = NA,
+                            stringsAsFactors = FALSE))
+
   # Plot the results
-  plot.PLRwithFeatures(data_frame_norm, bins, features_blue, features_red, 
-                         data_bins_blue, data_bins_red,
-                         normalize_on, normalize_method, normalize_indiv_colors, 
-                         baseline_period, light_range, 
-                         just_filename, data_images_path_out)
+  # plot.PLRwithFeatures(data_frame_in, bins, features_blue, features_red,
+  #                        fractal_features, timefreq_features, 
+  #                        data_bins_blue, data_bins_red,
+  #                        normalize_on, normalize_method, normalize_indiv_colors, 
+  #                        baseline_period, light_range, 
+  #                        just_filename, data_images_path_out)
   
   # Export the results
   export_as = "CSV"
   export.PLRwithFeatures(data_path_out, just_filename, export_as, 
-                         data_frame__norm, bins, features_blue, features_red)
+                         data_frame__norm, bins, features_blue, features_red,
+                         fractal_features, timefreq_features)
   
 }
 

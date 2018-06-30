@@ -42,7 +42,17 @@ get.datapoints.per.bin = function(data_frame_in, timingMethod, startTime, endTim
     warning('Not yet implemented this! The start index as -1')
     
   } else if (startTime < 0 | endTime < 0) {
-    warning('Negative bin timing limits not allowed beyond the use of "-1"')
+    # warning('Negative bin timing limits not allowed beyond the use of "-1"')
+    if (identical(startString, 'onset')) {
+      
+      endTime_ind = light_range$blue[1] - 1 # just before red onset
+      endTime = endTime + data_frame_in$time[endTime_ind]
+      startTime = endTime + startTime
+      
+    } else if (identical(startString, 'offset')) {
+      warning('Someone has been lazy and not yet implemented offset')  
+    }
+    
   }
   
   # The "bins.csv" defines time in seconds, whereas we are selecting ranges

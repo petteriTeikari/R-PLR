@@ -1,33 +1,52 @@
-file.fractal.wrapper = function(filename_path, data_path_out, param, debug = FALSE,
-                                dfa.package = 'fractal') {
+file.fractal.wrapper = function(filename_path, data_fractal_out, param, debug = FALSE,
+                                dfa.package = 'fractal', from_dataframe = FALSE, 
+                                df_in = NA, filecode = NA) {
 
   # INITIALIZE --------------------------------------------------------------
 
-    # Check input
-    just_filename = tail(strsplit(filename_path, .Platform$file.sep)[[1]], 1)
-    filecode = strsplit(just_filename, '_')[[1]][1]
-    cat(filecode, ' ')
+    if (!from_dataframe) {
+      
+      # Check input
+      just_filename = tail(strsplit(filename_path, .Platform$file.sep)[[1]], 1)
+      filecode = strsplit(just_filename, '_')[[1]][1]
+      cat(filecode, ' ')
+      
+      # READ IN
+      df_in = read.csv(filename_path)
     
-    # READ IN
-    df_in = read.csv(filename_path)
+    } else {
+      
+      # df_in given as input
+      
+    }
   
   # COMPUTATIONS ------------------------------------------------------------
 
     t = df_in$time
     y = df_in$pupil
     
+    if (sum(is.na(y))) {
+      warning('Your input "y" has NA values!, More exactly = ', 
+              100*sum(is.na(y))/length(y), '% of values are NA')
+    }
+    
     # DFA, not the most useful in general
-    H_est = fractal.DFA.wrapper(t, y)
+    DFA_df = list(fractal.DFA.wrapper(t, y))
     
     # MMA, Multiscale Multifractal Analysis
-    # TODO!
+    # TODO! at some point
     
     # MFDFA, MultiFractal Detrended Fluctuation Analysis 
-    mfdfa = fractal.MFDFA.wrapper(t, y)
+    mfdfa_out = fractal.MFDFA.wrapper(t, y)
+      mfdfa = mfdfa_out[[1]] # the vectors that are saved to disk
+      mfdfa_list_of_dfs = mfdfa_out[[2]] # point estimates (scalars) that can be analyzed with the other
+                                # classical features
     
     file_out = paste0(filecode, '_mfdfa.RData')
-    save(mfdfa, file = file.path(data_path_out, file_out, fsep = .Platform$file.sep))
+    save(mfdfa, file = file.path(data_fractal_out, file_out, fsep = .Platform$file.sep))
 
+    scalars_out = c(DFA_df, mfdfa_list_of_dfs)
+    return(scalars_out)
     
   # MULTIFRACTAL THEORY ------------------------------------------------------------------
     

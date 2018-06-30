@@ -1,14 +1,28 @@
-file.timeFreq.wrapper = function(filename_path, data_path_out, param, debug = FALSE) {
+file.timeFreq.wrapper = function(filename_path, data_path_out, param, debug = FALSE, 
+                                 from_dataframe = FALSE, df_in = NA, filecode = NA) {
 
   # INITIALIZE --------------------------------------------------------------
 
-    # Check input
-    just_filename = tail(strsplit(filename_path, .Platform$file.sep)[[1]], 1)
-    filecode = strsplit(just_filename, '_')[[1]][1]
-    cat(filecode, ' ')
-    
-    # READ IN
-    df_in = read.csv(filename_path)
+    if (!from_dataframe) {
+      
+      # Check input
+      just_filename = tail(strsplit(filename_path, .Platform$file.sep)[[1]], 1)
+      filecode = strsplit(just_filename, '_')[[1]][1]
+      cat(filecode, ' ')
+      
+      # READ IN
+      df_in = read.csv(filename_path)
+      
+    } else {
+      
+      # df_in given as input
+      
+    }
+
+    if (sum(is.na(df_in$pupil))) {
+      warning('Your input "y" has NA values!, More exactly = ', 
+              100*sum(is.na(df_in$pupil))/length(df_in$pupil), '% of values are NA')
+    }
     
     # take a subset with only the IMF
     subset_out = pick.IMF.subset.from.df(df_in)
@@ -28,10 +42,17 @@ file.timeFreq.wrapper = function(filename_path, data_path_out, param, debug = FA
     # Calculate spectrogram
     dt = 0.4 # time step
     dfreq = 0.02 # frequency step
-    hgram <- HHRender(CEEMD.result, dt, dfreq) # ~2.17 seconds per file at home AMD
+    hgram <- HHRender(CEEMD.result, dt, dfreq, verbose = FALSE) # ~2.17 seconds per file at home AMD
     
     # custom field
     hgram[['dt']] = dt
+    
+    # Hilbert spectrum
+    hspec = HHSpectrum(CEEMD.result, dfreq, verbose = FALSE)
+    hspec$amplitude.summed = rowSums(hspec$amplitude) # sum all IMFs
+    # HHSpecPlot(hspec, show.fourier = TRUE, scale.fourier = TRUE)
+    # ind = hspec$frequency > 0.5 # Hz
+    # plot(hspec$frequency[ind], hspec$amplitude.summed[ind], type='l')
     
     # Plot it
     # time.span <- c(5, 10)
@@ -40,7 +61,9 @@ file.timeFreq.wrapper = function(filename_path, data_path_out, param, debug = FA
     # HHGramImage(hgram, freq.span = freq.span)
     
     file_out = paste0(filecode, '_hgram.RData')
-    save(hgram, file = file.path(data_path_out, file_out, fsep = .Platform$file.sep))
+    save(hgram, hspec, file = file.path(data_path_out, file_out, fsep = .Platform$file.sep))
+    
+    return('f')
     
   # THEORY ------------------------------------------------------------------
     

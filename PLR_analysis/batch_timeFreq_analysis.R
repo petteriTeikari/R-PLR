@@ -38,4 +38,5 @@
   }, mc.cores = param[['no_of_cores_to_use']])
   end_time <- Sys.time()
   end_time - start_time # 22.70503 mins with home AMD (4 cores, 388 files)
+                        # 8.488673 mins with personal i7 (8 cores)
   
