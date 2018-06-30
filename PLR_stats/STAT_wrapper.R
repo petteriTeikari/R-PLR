@@ -10,6 +10,7 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
     source(file.path(settings[['stat_path']], 'stats_point_features.R', fsep = .Platform$file.sep))
     source(file.path(settings[['stat_path']], 'plotting_point_features.R', fsep = .Platform$file.sep))
     source(file.path(settings[['stat_path']], 'statistical_test_wrapper.R', fsep = .Platform$file.sep))
+    source(file.path(settings[['stat_path']], 'compute_prelim_stat_tests.R', fsep = .Platform$file.sep))
     
     # "private functions"
     source(file.path(settings[['stat_path']], 'data_wrangling_functions.R', fsep = .Platform$file.sep))
@@ -17,6 +18,7 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
     source(file.path(settings[['stat_path']], 'pre_process_wrapper_for_average_traces.R', fsep = .Platform$file.sep))
   
     source(file.path(settings[['stat_path']], 'density_and_ROC_plot.R', fsep = .Platform$file.sep))
+    
   
   # Init PROCESS Parameters -----------------------------------------------------------------  
   
@@ -59,6 +61,16 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       parameters[['traces']][['y']] = pupil_col
       parameters[['traces']][['error']] = error_col
     
+      # STATS
+      categorical_vars = list()
+      categorical_vars[[1]] = c(parameters[['main_factor']])
+      categorical_vars[[2]] = c(parameters[['main_factor']], 'Sex')
+      parameters[['stats']][['categorical_var_names']] = c('Diagnosis', 'Diagnosis*Sex')
+      parameters[['stats']][['categorical_vars']] = categorical_vars
+      parameters[['stats']][['prelim_tests']][['p_threshold']] = 0.05
+      parameters[['stats']][['pairwise_tests']][['p_threshold']] = 0.05
+      
+      
       # ROC
       parameters[['ROC']][['combine_pathologies_also']] = TRUE
       

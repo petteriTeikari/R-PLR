@@ -19,51 +19,7 @@ density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_pl
   
   for (f in 1 : length(features)) {
     
-    # find instances of this features
-    ind = as.logical(lapply(vars_to_plot, function(ch) grep(features[[f]], ch)))
-    ind[is.na(ind)] = FALSE
-    ind_linear = which(ind)
-    
-    # which names were found
-    feature_names_found = vars_to_plot[ind_linear]
-    
-    # split into red, blue and global
-    ind_red = grepl('red', feature_names_found)
-    ind_blue = grepl('blue', feature_names_found)
-    ind_global = grepl('global', feature_names_found)
-    
-    # split value and uncertainty
-    value_indices = !grepl('Uncertainty', feature_names_found)
-    
-    # gets a bit heavy now, the index now refers to 
-    # df_trim
-    n = length(ind_linear)
-    value_red_ind = if.ind.nonempty(ind_linear[value_indices & ind_red], n)
-    uncert_red_ind = if.ind.nonempty(ind_linear[!value_indices & ind_red], n)
-    value_blue_ind = if.ind.nonempty(ind_linear[value_indices & ind_blue], n)
-    uncert_blue_ind = if.ind.nonempty(ind_linear[!value_indices & ind_blue], n)
-    value_global_ind = if.ind.nonempty(ind_linear[value_indices & ind_global], n)
-    uncert_global_ind = if.ind.nonempty(ind_linear[!value_indices & ind_global], n)
-    
-    # Determine who many subplots we get per feature
-    # with red_blue, we get 3 subplots, and with "global"
-    # just one
-    list_feats = list()
-    if (is.na(value_global_ind)) {
-      no_subplots = 3
-      list_feats[['blue']][['mean']] = df_trim[[value_blue_ind]]
-      list_feats[['blue']][['uncert']] = df_trim[[uncert_blue_ind]] 
-      list_feats[['red']][['mean']] = df_trim[[value_red_ind]] 
-      list_feats[['red']][['uncert']] = df_trim[[uncert_red_ind]] 
-      list_feats[['diff']][['mean']] = list_feats[['blue']][['mean']] - list_feats[['red']][['mean']]
-      list_feats[['diff']][['uncert']] = sqrt(list_feats[['blue']][['uncert']]^2 
-                                              + list_feats[['red']][['uncert']]^2)
-    } else {
-      no_subplots = 1
-      list_feats[['global']][['mean']] = df_trim[[value_global_ind]] 
-      list_feats[['global']][['uncert']] = df_trim[[uncert_global_ind]] 
-    }
-    
+    list_feats = feature.fields.to.list(feat_in = features[[f]], vars_to_plot)
     
     # Go through all these subplots
     for (sp in 1 : no_subplots) {

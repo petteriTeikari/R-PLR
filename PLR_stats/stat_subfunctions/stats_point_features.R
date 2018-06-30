@@ -11,7 +11,12 @@ stats.point.features = function(data_frame_feats, list_traces, dataset_type,
                                                     data_type = 'feats') 
   
   grouping_variable = parameters[['main_factor']]
-  df_trim_stats = statistical.test.wrapper(df_trim)
+  subject_codes = data_frame_feats$`Subject code`[master_indices_out]
+  
+  # Compute the stats
+  df_trim_stats = statistical.test.wrapper(df_trim, parameters,
+                                           parameters_stats = parameters[['stats']],
+                                           subject_codes)
   
   
   # Plot finally 

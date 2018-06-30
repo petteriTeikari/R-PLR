@@ -14,6 +14,10 @@
   library(dplyr)
   library(plyr)
 
+  # install.packages("car")
+  library(car) # for Levene's test e.g.
+
+
   # install.packages("MAMSE")
   library(MAMSE) # for ROC
   # install.packages("pROC")

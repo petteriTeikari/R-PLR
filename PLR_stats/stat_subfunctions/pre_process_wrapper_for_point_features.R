@@ -18,19 +18,11 @@ pre.process.wrapper.for.point.features = function(data_frame_feats,
   global_names = names_list[[2]]
   
   # Create a dataframe with the desired data, and do age matching also
-  # df_subset = select.subset.from.df(data_frame_feats, parameters, settings, data_type)
   df_subset = data_frame_feats[master_indices_out,]
   
   # Do some data wrangling and keep only the desired features for plotting
   df_trim = trim.df.with.tidyr(df_subset, feats_to_keep, bin_names, global_names,
                                grouping_variable, fixed_variables) 
-  
-  if ((length(df_trim) == 0 | dim(df_trim)[1])) {
-    warning('HARD TO CONTINUE WITH THE ANALYSIS from here as no data rows were left after selection criteria')
-  }
-  
-  # Convert the long format (melt) for plotting
-  # df_melt = convert.to.long.melt.format(df_trim, parameters[['factors']]) 
   
   return(df_trim)
   
