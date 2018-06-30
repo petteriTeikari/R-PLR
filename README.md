@@ -11,6 +11,9 @@ R packages tend to go to [Journal of Statistical Software](https://github.com/pe
 * [Journal of Neuroscience Methods](https://www.journals.elsevier.com/journal-of-neuroscience-methods/), IF = 2.554, e.g [EEGLAB](https://doi.org/10.1016/j.jneumeth.2003.10.009)
 * [Frontiers in Neuroinformatics](https://www.frontiersin.org/journals/neuroinformatics), IF=3.870, e.g. [OpenElectrophy](https://www.frontiersin.org/journals/neuroinformatics#articles)
 * [HRV software](https://doi.org/10.3389/fphys.2016.00557) also published in [Frontiers in Physiology](https://www.frontiersin.org/journals/physiology), IF=4.134
+* [SoftwareX](https://www.sciencedirect.com/journal/softwarex), IF=, e.g. [tgcd: An R package for analyzing thermoluminescence glow curves](https://doi.org/10.1016/j.softx.2016.06.001)
+
+
 # Quick installation Guide
 
 ## How to start using
