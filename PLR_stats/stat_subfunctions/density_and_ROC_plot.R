@@ -1,5 +1,6 @@
 density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_plot = 'mean',
-                                  grouping_variable, parameters, settings) {
+                                  grouping_variable, combine_pathology = FALSE, 
+                                  parameters, settings) {
   
   # Go through every feature in the df_trim and plot the distribution of it 
   vars_to_plot = colnames(df_trim)
@@ -118,11 +119,13 @@ density.plot.subfunction = function(p, feat_vectors, factors_in,
   df_feats$Diagnosis = mapvalues(df_feats$Diagnosis, 
                                  from = levelnames_from, to = levelnames_to)
   
-  # and plot
+  # and plot actually the distributions
   p[[pCount]] = ggplot(df_feats, aes(x = mean)) +
                 # geom_dotplot(aes(fill = sex), alpha=0.4, binwidth = 1.25)
                 geom_density(aes(color = Diagnosis), alpha=0.4) +
-                labs(title=feature_name, subtitle=feat_type)
+                labs(title=feature_name, subtitle=feat_type) +
+                theme(legend.text=element_text(size=6))
+  
 
   return(p)
   

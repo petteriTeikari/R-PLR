@@ -43,7 +43,7 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       parameters[['matched_by']][['Age']] = 12 # threshold in years
 
     # The features of interest
-      
+      parameters[['factors']] = parameters[['main_factor']] # fixed variable
       parameters[['features']] = c('MaxConstr', 'QuickPhasic', '6SecondPIPR', 'SlopesON_2_phasic', 
                                    'SlopesOFF_2_phasic', 'DFA_Hest', 'MFDFA_spectrum_width_hq', 'MFDFA_spectrum_peak_hq')
     
@@ -59,6 +59,9 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       parameters[['traces']][['y']] = pupil_col
       parameters[['traces']][['error']] = error_col
     
+      # ROC
+      parameters[['ROC']][['combine_pathologies_also']] = TRUE
+      
     # TODO! You could read all the parameter pairs from .txt files, and have one row
     # per comparison and simply then loop through the rows giving you all the desired 
     # stats with a button push

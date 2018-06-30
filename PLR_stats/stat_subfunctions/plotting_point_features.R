@@ -20,8 +20,9 @@ boxplot.the.features = function(df_trim, df_trim_stats,
   for (i in 1:no_of_subplots) {
     
     feat_to_plot = sub('red_', '', feats_value[i])
-    melted = trim.to.melt.for.the.feat(df_trim, feat_to_plot, 
-                                           grouping_variable)
+    melted = trim.to.melt.for.the.feat(df = df_trim, 
+                                       feat_to_plot, 
+                                       grouping_variable)
     
     df_values = melted[[1]]
     df_uncert = melted[[2]]
@@ -96,7 +97,7 @@ get.number.of.diff.features.for.plot = function(df_trim, define_by,
 trim.to.melt.for.the.feat = function(df, feat_to_plot, 
                                      grouping_variable) {
   
-  col_names = colnames(df_trim)
+  col_names = colnames(df)
   
   group_found = match(grouping_variable, col_names)
   if (is.na(group_found)) {

@@ -16,14 +16,22 @@ stats.point.features = function(data_frame_feats, list_traces, dataset_type,
   
   # Plot finally 
   if (identical(plot_type, 'boxplot')) {
-    p = boxplot.the.features(df_trim, df_trim_stats, parameters[['features']], 
+    p = boxplot.the.features(df_trim, df_trim_stats, 
+                             feats_to_keep = parameters[['features']], 
                              grouping_variable, parameters, settings)
   } else {
     warning('Only boxplot now implemented, you tried =', plot_type)
   }
   
+  # TODO! Duplicates
   density.and.ROC.plot(df_trim, df_trim_stats, 
                        features = parameters[['features']], var_name_to_plot = 'mean',
-                       grouping_variable, parameters, settings)
+                       grouping_variable, combine_pathology = FALSE, parameters, settings)
+  
+  if (parameters[['ROC']][['combine_pathologies_also']]) {
+    density.and.ROC.plot(df_trim, df_trim_stats, 
+                         features = parameters[['features']], var_name_to_plot = 'mean',
+                         grouping_variable, combine_pathology = TRUE, parameters, settings)
+  }
   
 }

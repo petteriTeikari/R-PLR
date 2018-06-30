@@ -57,7 +57,6 @@ trim.df.with.tidyr = function(df_subset, feats_to_keep, bin_names, global_names,
   # https://github.com/STAT545-UBC/Discussion/issues/492
   # https://uc-r.github.io/tidyr
   
-  cat('\n')
   cat('Removing features from data frame not needed for plotting\n')
   
   # list with values [[1]], and uncertainties [[2]] to keep
