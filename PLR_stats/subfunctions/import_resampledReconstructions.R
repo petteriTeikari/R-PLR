@@ -1,4 +1,5 @@
-import.resampledReconstructions = function(data_path_traces, pattern_to_find, dataset_type) {
+import.resampledReconstructions = function(data_path_traces, pattern_to_find, 
+                                           dataset_type, included_vars, settings) {
   
   # Get a file listing of the files found from the data folder
   files_to_read = list.files(path=data_path_traces, pattern=pattern_to_find, recursive=TRUE, full.names = TRUE)
@@ -10,16 +11,18 @@ import.resampledReconstructions = function(data_path_traces, pattern_to_find, da
     subject_codes = as.numeric(sub('PLR', '', subject_codes_raw))
   }
   
-  cat('Reading in the reconstruced PLR traces\n')
+  cat('Reading in the reconstruced PLR traces, takes some time... \n')
   list = lapply(files_to_read, function(files_to_read){
-    read.individual.trace.in(files_to_read)
+    read.individual.trace.in(files_to_read, included_vars)
   })
   
   # now we have a list that has as many elements as we files with
   # each time vector being for example int [1:1980] whereas we would
   # like each variable to be 2D Matrix
   cat(' -> Combining the read traces into a one huge list\n')
-  list_huge = combine.list.dfs.to.one.list(list)
+  list_huge = combine.list.dfs.to.one.list(list, included_vars)
+  
+  cat(' .. in total found', length(list), 'files from the import folder')
   
   # Convert then to a data frame
   # TODO! Maybe needless over memory overhead here if you a lot of traces
@@ -31,15 +34,27 @@ import.resampledReconstructions = function(data_path_traces, pattern_to_find, da
 }
 
 # Read function to be looped through in the "lapply"
-read.individual.trace.in = function(filename_path) {
+read.individual.trace.in = function(filename_path, included_vars) {
+  
   data_frame_in = read.csv(filename_path)
+  col_names = colnames(data_frame_in)
+  
+  # get rid of unwanted columns
+  to_incl = col_names %in% included_vars
+  data_frame_in = data_frame_in[to_incl]
+  col_names2 = colnames(data_frame_in)
+  
+  # re-order the columns
+  inds_new = match(included_vars, col_names2)
+  data_frame_in = data_frame_in[inds_new]
+  
   return(data_frame_in)
 }
 
 
 # From list with individual data frames to a one
 # large dataframe
-combine.list.dfs.to.one.list = function(list) {
+combine.list.dfs.to.one.list = function(list, included_vars) {
   
   no_of_files_in_list = length(list)
   var.names = colnames(list[[1]])
