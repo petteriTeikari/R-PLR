@@ -10,8 +10,12 @@ density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_pl
   p = list()
   pCount = 1
   
-  factors_in = df_trim[[grouping_variable]]
+  factors_in = toupper(df_trim[[grouping_variable]])
   factors_kept = parameters[['factors_keep']][[parameters[['main_factor']]]]
+  
+  if (combine_pathology) {
+    factors_in = combine.pathologies(factors_in, factors_kept)
+  }
   
   for (f in 1 : length(features)) {
     
@@ -59,7 +63,6 @@ density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_pl
       list_feats[['global']][['mean']] = df_trim[[value_global_ind]] 
       list_feats[['global']][['uncert']] = df_trim[[uncert_global_ind]] 
     }
-    
     
     
     # Go through all these subplots
@@ -238,5 +241,49 @@ if.ind.nonempty = function(boolean_indices, n) {
     indices_out = boolean_indices
   }
   return(indices_out)
+  
+}
+
+combine.pathologies = function(factors_in, factors_kept) {
+  
+  factors_out = factors_in
+  
+  for (i in 1 : length(factors_kept)) {
+    
+    group_name_in = factors_kept[i]
+    group_name_out = pathology.lookup.table(group_name_in)
+    factor_indices = toupper(factors_in) %in% toupper(group_name_in)
+    factors_out[factor_indices] = group_name_out
+  }
+  
+  return(factors_out)
+  
+}
+
+pathology.lookup.table = function(group_name_in) {
+  
+  group_name_in = toupper(group_name_in)
+  
+  if (identical(group_name_in,'POAG') |
+      identical(group_name_in,'NTG') |
+      identical(group_name_in,'DISC SUSPECT')) {
+    
+    group_name_out = 'Glaucoma'
+    
+  } else if (identical(group_name_in,'MILD NPDR') | 
+             identical(group_name_in, 'MODERATE NPDR') |
+             identical(group_name_in, 'DM')) {
+    
+    group_name_out = 'Diabetes'
+    
+  } else if (identical(group_name_in,'CONTROL')) {
+    
+    group_name_out = 'Control'
+    
+  } else {
+    warning('Do not know how to map this "', group_name_in, '" to "umbrella pathology"')
+  }
+  
+  return(group_name_out)
   
 }
