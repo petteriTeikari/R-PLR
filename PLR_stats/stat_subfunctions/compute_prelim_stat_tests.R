@@ -51,6 +51,8 @@ compute.prelim.stat.tests = function(x1, x2, y, error, subj, p_threshold = 0.05)
     # two independent variables
   }
   
+  # Brown–Forsythe test?
+  
   # Make a conclusion that it is easier to use in the following steps 
   out_list[['CONCLUSION']][['Normal']]$Name = 'Shapiro'
   out_list[['CONCLUSION']][['Normal']]$True = out_list[['Shapiro']]$True

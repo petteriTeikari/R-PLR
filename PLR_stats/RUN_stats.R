@@ -61,6 +61,8 @@
   source(file.path(script.dir, 'STAT_wrapper.R', fsep = .Platform$file.sep))
   
   source(file.path(source_path, 'import_computedFeats.R', fsep = .Platform$file.sep))
+  source(file.path(IO_path, 'import_feat_file.R', fsep = .Platform$file.sep))
+  
   source(file.path(source_path, 'import_resampledReconstructions.R', fsep = .Platform$file.sep))
   source(file.path(source_path, 'list_theFeatFiles.R', fsep = .Platform$file.sep))
   source(file.path(IO_path, 'read_theMasterExcel.R', fsep = .Platform$file.sep))

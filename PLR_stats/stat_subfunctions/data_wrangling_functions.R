@@ -11,9 +11,6 @@ split.bin.and.global.feats = function(derived_feats_names) {
 }
 
 
-
-
-
 find.value.and.uncert.indices = function(df, feat_to_plot) {
   
   col_names = colnames(df)
@@ -29,10 +26,7 @@ find.value.and.uncert.indices = function(df, feat_to_plot) {
   
 }
 
-remove.rows.with.all.values.NA = function(df_sub1, no_of_vars_to_check_for_NAs) {
-  
-  df_sub1
-  cat(' .. .. Now we have a total of',  dim(df_sub1)[1], 'subjects in our data frame ("df_sub1")\n')
+remove.rows.with.all.values.NA = function(df_sub1, no_of_vars_to_check_for_NAs, verbose) {
   
   # NOTE!
   # no_of_vars - is not necessary equal to all columns
@@ -40,8 +34,12 @@ remove.rows.with.all.values.NA = function(df_sub1, no_of_vars_to_check_for_NAs) 
   subject_contains_only_NAs = sum_NA_per_row == no_of_vars_to_check_for_NAs
   df_out <- df_sub1[!subject_contains_only_NAs,]
   
-  cat(' .. .. .. some of these ( n=', sum(subject_contains_only_NAs), ') were subjects that had entries in Master Data sheet without approved PLR trace (no _BR label)\n')
-  cat(' .. .. .. ... which leaves us with a total of', dim(df_out)[1], 'subjects to analyze and plot\n')
+  
+  if (verbose) {
+    cat(' .. .. Now we have a total of',  dim(df_sub1)[1], 'subjects in our data frame ("df_sub1")\n')
+    cat(' .. .. .. some of these ( n=', sum(subject_contains_only_NAs), ') were subjects that had entries in Master Data sheet without approved PLR trace (no _BR label)\n')
+    cat(' .. .. .. ... which leaves us with a total of', dim(df_out)[1], 'subjects to analyze and plot\n')
+  }
   
   
   return(df_out)
@@ -51,16 +49,15 @@ remove.rows.with.all.values.NA = function(df_sub1, no_of_vars_to_check_for_NAs) 
 
 
 trim.df.with.tidyr = function(df_subset, feats_to_keep, bin_names, global_names,
-                              grouping_variable, fixed_variables) {
+                              grouping_variable = NA, fixed_variables = NA,
+                              verbose = TRUE, check_for_empty_subjects = TRUE) {
   
   # https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf
   # https://github.com/STAT545-UBC/Discussion/issues/492
   # https://uc-r.github.io/tidyr
-  
-  cat('Removing features from data frame not needed for plotting\n')
-  
+
   # list with values [[1]], and uncertainties [[2]] to keep
-  to_keep = get.feat.names.for.color.with.uncertainty(feats_to_keep, bin_names, global_names)
+  to_keep = get.feat.names.for.color.with.uncertainty(feats_to_keep, bin_names, global_names, verbose)
   
   values = to_keep[[1]]
   uncert = to_keep[[2]]
@@ -72,14 +69,22 @@ trim.df.with.tidyr = function(df_subset, feats_to_keep, bin_names, global_names,
   df_sub1 <- select(df_subset, one_of(all_vars_to_keep))
   options(warn = 0)
   
-  cat(' .. going from',  length(df_subset), ' variables to', length(df_sub1), 'variables\n')
+  if (verbose) {
+    cat('Removing features from data frame not needed for plotting\n')
+    cat(' .. going from',  length(df_subset), 'variables to', length(df_sub1), 'variables\n')
+  }
   
   # TODO! check if your desired featured is not found, e.g. in case of a typo!
-  no_of_var_in_init = length(colnames(df_sub1))
-  no_of_vars_to_check_for_NAs = no_of_var_in_init - length(fixed_variables)
-  
-  # remove all the rows that have NAs in all the columns
-  df_sub2 = remove.rows.with.all.values.NA(df_sub1, no_of_vars_to_check_for_NAs)
+  if (check_for_empty_subjects) {
+    no_of_var_in_init = length(colnames(df_sub1))
+    no_of_vars_to_check_for_NAs = no_of_var_in_init - length(fixed_variables)
+    
+    # remove all the rows that have NAs in all the columns
+    df_sub2 = remove.rows.with.all.values.NA(df_sub1, no_of_vars_to_check_for_NAs, verbose)
+    
+  } else {
+    df_sub2 = df_sub1
+  }
   
   return(df_sub2)
   
@@ -762,7 +767,7 @@ keep.only.the.features.of.interest = function(df_subset, feats_to_keep,
   
 }
 
-get.feat.names.for.color.with.uncertainty = function(feats_to_keep, bin_names, global_names) {
+get.feat.names.for.color.with.uncertainty = function(feats_to_keep, bin_names, global_names, verbose) {
   
   # remove the "blue_" and "red_" prefixes
   bin_names2 = gsub("blue_", '', bin_names)
@@ -778,7 +783,9 @@ get.feat.names.for.color.with.uncertainty = function(feats_to_keep, bin_names, g
   feats_to_keep_bins = bin_names2[feats_to_keep_bins_ind]
   feats_to_keep_global = global_names2[feats_to_keep_global_ind]
   
-  cat('Trying to keep the following features = ', c(feats_to_keep_bins, feats_to_keep_global), '\n')
+  if (verbose) {
+    cat('Trying to keep the following features = ', c(feats_to_keep_bins, feats_to_keep_global), '\n')
+  }
   
   # now the feats to keep are given as they are in the "bins.csv", but now we might have
   # have blue_ or red_ in front of them
@@ -798,7 +805,7 @@ get.feat.names.for.color.with.uncertainty = function(feats_to_keep, bin_names, g
 }
 
 
-feature.fields.to.list = function(feat_in, vars_to_plot) {
+feature.fields.to.list = function(df_trim, feat_in, vars_to_plot) {
   
   # find instances of this features
   ind = as.logical(lapply(vars_to_plot, function(ch) grep(feat_in, ch)))
@@ -845,8 +852,18 @@ feature.fields.to.list = function(feat_in, vars_to_plot) {
     list_feats[['global']][['uncert']] = df_trim[[uncert_global_ind]] 
   }
   
-  return(list_feats)
+  return(list(list_feats, no_subplots))
   
 }
 
+if.ind.nonempty = function(boolean_indices, n) {
+  
+  if (length(boolean_indices) == 0) {
+    indices_out = NA
+  } else {
+    indices_out = boolean_indices
+  }
+  return(indices_out)
+  
+}
 

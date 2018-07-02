@@ -24,6 +24,14 @@
     
     mfdfa = MFDFA(y, scale, m=m, q)
     
+    # Add the inputs as well, TODO! Check that works
+    mfdfa[['q']] = q
+    mfdfa[['scale']] = scale
+    mfdfa[['scmin']] = scmin
+    mfdfa[['scmax']] = scmax
+    mfdfa[['scres']] = scres
+    mfdfa[['exponents']] = exponents
+    
       # Output consists of
       #   • Hq Hurst exponent.
       #   • tau_q Mass exponent.

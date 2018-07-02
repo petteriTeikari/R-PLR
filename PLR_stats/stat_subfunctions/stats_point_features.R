@@ -14,14 +14,15 @@ stats.point.features = function(data_frame_feats, list_traces, dataset_type,
   subject_codes = data_frame_feats$`Subject code`[master_indices_out]
   
   # Compute the stats
-  df_trim_stats = statistical.test.wrapper(df_trim, parameters,
-                                           parameters_stats = parameters[['stats']],
-                                           subject_codes)
+  #
+  # df_trim_stats = statistical.test.wrapper(df_trim, parameters,
+  #                                         parameters_stats = parameters[['stats']],
+  #                                         subject_codes)
   
   
   # Plot finally 
   if (identical(plot_type, 'boxplot')) {
-    p = boxplot.the.features(df_trim, df_trim_stats, 
+    p = boxplot.the.features(df_trim, df_trim_stats = df_trim, 
                              feats_to_keep = parameters[['features']], 
                              grouping_variable, parameters, settings)
   } else {

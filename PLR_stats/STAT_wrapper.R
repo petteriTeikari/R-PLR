@@ -70,7 +70,6 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       parameters[['stats']][['prelim_tests']][['p_threshold']] = 0.05
       parameters[['stats']][['pairwise_tests']][['p_threshold']] = 0.05
       
-      
       # ROC
       parameters[['ROC']][['combine_pathologies_also']] = TRUE
       
@@ -88,9 +87,9 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       analysis_param[[i]] = parameters
       
       # and change the values need to be changed
-      analysis_param[[i]][['match_reference']] = c('Mild NPDR', 'Moderate NPDR', 'DM')
+      analysis_param[[i]][['match_reference']] = c('DM')
       analysis_param[[i]][['factors_keep']][[parameters[['main_factor']]]] = 
-                                      c('Control', 'Mild NPDR', 'Moderate NPDR', 'DM')
+                                      c('Control', 'DM')
     
   # PROCESS -----------------------------------------------------------------  
     

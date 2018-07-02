@@ -19,7 +19,9 @@ density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_pl
   
   for (f in 1 : length(features)) {
     
-    list_feats = feature.fields.to.list(feat_in = features[[f]], vars_to_plot)
+    out_list = feature.fields.to.list(df_trim, feat_in = features[[f]], vars_to_plot)
+      list_feats = out_list[[1]]
+      no_subplots = out_list[[2]]
     
     # Go through all these subplots
     for (sp in 1 : no_subplots) {
@@ -189,16 +191,7 @@ get.possible.combinations = function(factors, to_compare_together = 2) {
 
 }
 
-if.ind.nonempty = function(boolean_indices, n) {
-  
-  if (length(boolean_indices) == 0) {
-    indices_out = NA
-  } else {
-    indices_out = boolean_indices
-  }
-  return(indices_out)
-  
-}
+
 
 combine.pathologies = function(factors_in, factors_kept) {
   

@@ -4,8 +4,8 @@ statistical.test.wrapper = function(df_trim, parameters, parameters_stats,
   # Get data characteristics 
   # ------------------------------------------------
 
-    var_to_plot = colnames(df_trim)
-    var_to_plot[(var_to_plot %in% parameters[['main_factor']])] = NA
+    vars_to_plot = colnames(df_trim)
+    vars_to_plot[(vars_to_plot %in% parameters[['main_factor']])] = NA
     features = parameters[['features']]
     factors_in = toupper(df_trim[[grouping_variable]])
     factors_kept = parameters[['factors_keep']][[parameters[['main_factor']]]]
