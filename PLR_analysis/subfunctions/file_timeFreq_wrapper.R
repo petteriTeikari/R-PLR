@@ -46,6 +46,7 @@ file.timeFreq.wrapper = function(filename_path, data_path_out, param, debug = FA
     
     # custom field
     hgram[['dt']] = dt
+    # hgram[['dfreq']] = dfreq
     
     # Hilbert spectrum
     hspec = HHSpectrum(CEEMD.result, dfreq, verbose = FALSE)
@@ -56,9 +57,11 @@ file.timeFreq.wrapper = function(filename_path, data_path_out, param, debug = FA
     
     # Plot it
     # time.span <- c(5, 10)
-    # freq.span <- c(0, 1.5)
+    freq.span <- c(0, 2)
     # amp.span <- c(1e-6, 2.5e-5)
-    # HHGramImage(hgram, freq.span = freq.span)
+    hhg_img = HHGramImage(hgram, freq.span = freq.span)
+    hgram[['hhg_img']] = hhg_img
+    hgram[['hhg_img_freq.span']] = freq.span
     
     file_out = paste0(filecode, '_hgram.RData')
     save(hgram, hspec, file = file.path(data_path_out, file_out, fsep = .Platform$file.sep))

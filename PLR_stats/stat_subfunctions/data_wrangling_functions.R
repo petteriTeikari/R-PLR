@@ -128,6 +128,17 @@ select.subset.from.list = function(list_traces, subject_codes_traces, data_frame
   # subject_codes_trace
   master_indices = get.master.data.indices(data_frame_feats, subject_codes_traces)
   
+    # This gives which PLR traces had an associated master data sheet
+    traces_found_from_master = master_indices
+    
+    # save to disk 
+    cat('\n')
+    filename_out = 'MasterMatched_combined_features.csv'
+    cat('Saving the found', length(master_indices), 'entries to disk as .csv\n')
+    export.pupil.dataframe.toDisk(data_frame_feats[traces_found_from_master,], 
+                                  filename_out, settings[['data_path_out']], 'feat_stats')
+    cat('\n')
+  
   # get the grouping variables from Master data sheet matching the PLR traces
   all_grouping_vars = data_frame_feats[[grouping_variable]][master_indices]
   
@@ -142,9 +153,6 @@ select.subset.from.list = function(list_traces, subject_codes_traces, data_frame
   
   # correspondence between the master data sheet and the returned list
   master_indices_out = master_indices[keep_indices]
-  
-  
-  
   
   
   return(list(list_out, master_indices_out, grouping_vars_out))

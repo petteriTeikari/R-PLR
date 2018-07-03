@@ -1,5 +1,6 @@
 compute.timeFreq = function(t, y) {
   
+  library(Rwave)
   # noctave - number of powers of 2 for the scale variable
   # nvoice  - number of scales in each octave (i.e. between two consecutive powers of 2).
   

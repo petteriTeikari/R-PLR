@@ -84,6 +84,7 @@
   settings = list()
   settings[['script_dir']] = script.dir
   settings[['stat_path']] = stat_path
+  settings[['data_path_out']] = data_path_out
   settings[['no_of_cores_to_use']] = detectCores() 
   
 # Import the files --------------------------------------------------------------
@@ -113,7 +114,7 @@
     # Export the files to disk as well
     
     # Save to disk
-    filename_path = 'combined_features.csv'
+    filename_path = 'ALL_combined_features.csv'
     export.pupil.dataframe.toDisk(data_frame_feats, filename_path, data_path_out, 'feat_stats')
     
     # The Traces
