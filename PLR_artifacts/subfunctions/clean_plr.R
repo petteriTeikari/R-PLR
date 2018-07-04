@@ -18,15 +18,14 @@ clean.plr <- function(data_frame_in, source_path,
   # Cleaning part -----------------------------------------------------------
   
     pupil_error = data_frame_in$video_noise_total
-  
     verbose_acc = 2; # only the last count
   
     # quick'n'dirty fix for outlier so that limits are more loose on light onsets
     verbose = FALSE
     lights_on = define.whenLightWasOn(data_frame_in, verbose)
     
-    padding = 2*30 # frames
-    safe_vector = create.save.vector(data_frame_in$time, lights_on, padding)
+    padding = 2*10 # frames
+    safe_vector = create.safe.vector(data_frame_in$time, lights_on, padding)
     # TODO! Add switch here for multiple ways to kick out outliers
     
     # Remove "illegal values", such as "-1"
@@ -46,14 +45,18 @@ clean.plr <- function(data_frame_in, source_path,
       
     # Cubic spline smoothing with cross-validated parameters
     # Note! Spline cannot accept any NA values
-    spline_out = spline.filter(df_hard_thr_nonnan, sigma_multip, 
-                               safe_vector_nonnan, pupil_error_nonnan)
+    spline_out = spline.filter(data_frame = df_hard_thr_nonnan, 
+                               sigma_multip, 
+                               safe_vector = safe_vector_nonnan, 
+                               pupil_error = pupil_error_nonnan,
+                               debug_plot = FALSE)
     
       nan_indices_spline = spline_out[[1]]
-      spline_error = spline_out[[2]]
+      spline_error = pupil_error_nonnan
       
       errors_out = make.vector.original.length(df_hard_thr_nonnan$time, spline_error,
-                                                               data_frame_in$time)
+                                                                data_frame_in$time)
+      
       
       df_spline = set.outliers.to.na(df_hard_thr_nonnan, nan_indices_spline)
       df_spline_nonnan = remove.na(df_hard_thr_nonnan, nan_indices_spline)
@@ -62,7 +65,7 @@ clean.plr <- function(data_frame_in, source_path,
       time_point_list = accumulate.nans(df_hard_thr_nonnan, nan_indices_spline, verbose_acc, time_point_list)
     
     # Use the tsoutliers from "forecast" package, auto-parameters
-    # ts_nan_indices = ts.filter(df_spline_nonnan, ts_iter_no, safe_vector_nonnan, pupil_error)
+    # ts_nan_indices = ts.filter(df_spline_nonnan, 3, safe_vector_nonnan, pupil_error)
       # df_tsout = set.outliers.to.na(df_spline_nonnan, ts_nan_indices)
       # df_tsout_nonnan = remove.na(df_spline_nonnan, ts_nan_indices)
       # safe_vector_nonnan = safe_vector_nonnan[!ts_nan_indices]
@@ -99,7 +102,7 @@ clean.plr <- function(data_frame_in, source_path,
 
 
 # SUBFUNCTION FOR LIGHT ONSET/OFFSET protection
-create.save.vector = function(t, lights_on, padding) {
+create.safe.vector = function(t, lights_on, padding) {
 
   safe_vector = as.numeric(vector(length=length(t)))
   

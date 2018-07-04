@@ -128,16 +128,8 @@ select.subset.from.list = function(list_traces, subject_codes_traces, data_frame
   # subject_codes_trace
   master_indices = get.master.data.indices(data_frame_feats, subject_codes_traces)
   
-    # This gives which PLR traces had an associated master data sheet
-    traces_found_from_master = master_indices
-    
-    # save to disk 
-    cat('\n')
-    filename_out = 'MasterMatched_combined_features.csv'
-    cat('Saving the found', length(master_indices), 'entries to disk as .csv\n')
-    export.pupil.dataframe.toDisk(data_frame_feats[traces_found_from_master,], 
-                                  filename_out, settings[['data_path_out']], 'feat_stats')
-    cat('\n')
+  # Save feats to disk
+  save.intermediate.feats.to.disk(data_frame_feats, master_indices, settings) 
   
   # get the grouping variables from Master data sheet matching the PLR traces
   all_grouping_vars = data_frame_feats[[grouping_variable]][master_indices]
@@ -875,3 +867,45 @@ if.ind.nonempty = function(boolean_indices, n) {
   
 }
 
+
+save.intermediate.feats.to.disk = function(data_frame_feats, master_indices, settings) {
+
+  # This gives which PLR traces had an associated master data sheet
+  traces_found_from_master = master_indices
+  
+  # save to disk 
+  cat('\n')
+  filename_out = 'MasterMatched_combined_features.csv'
+  cat('Saving the found', length(master_indices), 'entries to disk as .csv\n')
+  df_masterMatched = data_frame_feats[traces_found_from_master,]
+  export.pupil.dataframe.toDisk(df_masterMatched, 
+                                filename_out, settings[['data_path_out']], 'feat_stats')
+  cat('\n')
+  
+  # Save Control means as well for report generation purposes, so one can for 
+  # example compare how new subjects compare to the "normatitative" data
+  control_TRUE = df_masterMatched$Diagnosis %in% 'Control'
+  df_masterMatched_control = df_masterMatched[control_TRUE,]
+  
+  isnumeric_col = sapply(df_masterMatched_control, is.numeric) 
+  df_onlyNumeric = df_masterMatched_control[,isnumeric_col]
+  names_onlyNumeric = colnames(df_onlyNumeric)
+  control_means = colMeans(df_onlyNumeric, na.rm = TRUE)
+  control_SDs = apply(df_onlyNumeric, 2, sd, na.rm = TRUE)
+  
+  means_out = list()
+  SDs_out = list()
+  for (i in 1 : length(names_onlyNumeric)) {
+    SDs_out[[names_onlyNumeric[i]]] = control_SDs[i]
+    means_out[[names_onlyNumeric[i]]] = control_means[i]
+  }
+  
+  df_means_out = data.frame(means_out)
+  df_SDs_out = data.frame(SDs_out)
+  
+  export.pupil.dataframe.toDisk(means_out, 
+                                'Control_Group_features.csv', settings[['data_path_out']], 'mean')
+  export.pupil.dataframe.toDisk(SDs_out, 
+                                'Control_Group_features.csv', settings[['data_path_out']], 'SD')
+  
+}

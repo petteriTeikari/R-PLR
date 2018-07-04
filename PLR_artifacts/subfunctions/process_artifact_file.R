@@ -1,14 +1,6 @@
-process.artifact.file <- function(path, data_path_out, IO_path, filename_path, param) {
+process.artifact.file <- function(path, data_path_out, IO_path, source_path,
+                                  filename_path, param) {
 
-  source(file.path(IO_path, 'define_pupillometerFileformat.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'import_pupildata.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'import_SERI_pupillometer.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'copy_inFrameToOutDataframe.R', fsep = .Platform$file.sep))
-  source(file.path(source_path, 'clean_plr.R', fsep = .Platform$file.sep))
-  source(file.path(source_path, 'plot_each_artifact_file.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'export_pupil_dataframe_toDisk.R', fsep = .Platform$file.sep))
-  source(file.path(IO_path, 'define_whenLightWasOn.R', fsep = .Platform$file.sep))
-  
   cat("Processing file:", filename_path, "\n")
   
   # Unwrap the parameters
