@@ -13,7 +13,7 @@ boxplot.the.features = function(df_trim, df_trim_stats,
   # add these: df_trim_stats
   feats_value = out[[1]]
   no_of_subplots = out[[2]]
-  no_of_plot_cols = 2 # TODO! if you want this more adaptive
+  no_of_plot_cols = 3 # TODO! if you want this more adaptive
   no_of_plot_rows = ceiling(no_of_subplots / no_of_plot_cols)
   
   p = list()

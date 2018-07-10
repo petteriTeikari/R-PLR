@@ -28,6 +28,7 @@
   source_path_recon = file.path(script.dir, '..', 'PLR_reconstruction', 'subfunctions', fsep = .Platform$file.sep)
   IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
   config_path = file.path(script.dir, '..', 'config', fsep = .Platform$file.sep)
+ 
   
   # Overwrite the initialized data folder, if wanted
   # the use of ".Platform$file.sep" is better for Windows vs. Linux/Max
@@ -57,7 +58,7 @@
     dir.create(data_timefreq_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
   
-  data_images_path_out = file.path(data_path, '..', 'figures_out', fsep = .Platform$file.sep)
+  data_images_path_out = file.path(data_path, '..', 'feats_out', fsep = .Platform$file.sep)
   if (dir.exists(data_images_path_out) == FALSE) {
     cat('Creating the directory for FEATURES IMAGE output')
     dir.create(data_images_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
@@ -111,16 +112,15 @@
   files_to_process = define.filesToProcessForAnalysis(data_path, pattern_to_find, 
                                                       process_only_one_file, name_to_find)
     
+  
 # PROCESS ALL FILE(S) OF FOLDER ---------------------------------------------
 
-  # The real advantage of this "loopless approach" is that you can easily run 
-  # it in parallel using mclapply (from multicore package) 
-  # instead of lapply. Or parLapply from snow
-  features = lapply(files_to_process, function(files_to_process){
+
+  features = mclapply(files_to_process, function(files_to_process){
     process.single.PLR.for.analysis(files_to_process, data_path_out, data_norm_path_out, data_images_path_out, 
                                     data_fractal_out, data_timefreq_out, config_path, 
                                     normalize_on, normalize_method, normalize_indiv_colors)
-  }) 
+  },  mc.cores = no_of_cores_to_use) 
   # ~4h40min at home AMD (1-core)
   
   

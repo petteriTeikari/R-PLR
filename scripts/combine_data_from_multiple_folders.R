@@ -1,25 +1,35 @@
 # Now we have three different folder containing columns that we want to combine
-combine.data.from.multiple.folders = function(path_main, subfolder_paths, patterns,
+combine.data.from.multiple.folders = function(path_main = NA, 
+                                              RPLR_scripts_path = NA,
+                                              subfolder_paths = c('imputation_final',
+                                                                   'recon_EMD',
+                                                                   'recon_EMD_subcomp_fusion',
+                                                                   file.path('recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep)), 
+                                              patterns = c('*.csv',
+                                                           '*.csv',
+                                                           '*.csv',
+                                                           '*_fusion.csv'),
                                               check_for_matching_cols = FALSE) {
 
-  # install.packages("data.table")
-  library(data.table)
   
-  script.dir <- dirname(sys.frame(1)$ofile)
+  
+  if (is.na(path_main)) {
+    path_main = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/'
+    subfolder_paths = c('imputation_final',
+                        'recon_EMD',
+                        file.path('recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep))
+    
+    patterns = c('*_missForest.csv',
+                 '*_CEEMD.csv',
+                 '*_signals.csv')
+    
+  } else {
+    script.dir <- RPLR_scripts_path
+    check_matching_cols = c(TRUE, FALSE, FALSE)
+  }
+  
   IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
   source(file.path(IO_path, 'export_pupil_dataframe_toDisk.R', fsep = .Platform$file.sep))
-  
-  path_main = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/'
-  subfolder_paths = c('imputation_final',
-                      'recon_EMD',
-                      file.path('recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep))
-  
-  patterns = c('*_missForest.csv',
-                '*_CEEMD.csv',
-                '*_signals.csv')
-  
-  check_matching_cols = c(TRUE, FALSE, FALSE)
-  
   data_path_out = file.path(path_main, 'reconstructed')
   
 
@@ -29,16 +39,51 @@ combine.data.from.multiple.folders = function(path_main, subfolder_paths, patter
     no_of_files = vector(, length=length(patterns))
     
     for (i in 1 : length(subfolder_paths)) {
+      
       fullpath = file.path(path_main, subfolder_paths[i])
       colname = paste0('ind', i)
-      file_listing[[colname]] = list.files(path=fullpath, pattern=patterns[i], recursive=FALSE, full.names = TRUE)
+      
+      # sort by modification date, in descending order
+      # So that the latest modification will be written as the subject code recording
+      details = file.info(list.files(path=fullpath, pattern=patterns[i], recursive=FALSE, full.names = TRUE))
+      details = details[with(details, order(as.POSIXct(mtime)), decreasing = TRUE), ]
+      file_listing[[colname]] = rownames(details)
+      
+      # get rid of duplicates
+      # TODO!
+      # rename.folder.contents.to.remove.duplicates(file_listing[[colname]], subfolder_paths[i], fullpath)
+      
+      # do file listing again
+      files = list.files(path=fullpath, pattern=patterns[i], recursive=FALSE, full.names = TRUE)
+      
       no_of_files[i] = length(file_listing[[colname]])
     }
     
     # TODO! Check that lengths match, all folders should have the same amount of files
     # or check the filecode matches before adding 
+    pairs = combn(length(file_listing),2)
     
-
+    # https://stackoverflow.com/questions/22569176/r-permutations-and-combinations-with-without-replacement-and-for-distinct-non-d
+    # perms = ?
+    
+    for (i in 1:dim(pairs)[2]) {
+      
+      i1 = pairs[1,i]
+      i2 = pairs[2,i]
+      list = file_listing[[i1]]
+      path = file.path(path_main, subfolder_paths[i2])
+      
+      indices_undone = check.for.done.filecodes(files_to_process = list, 
+                                                path_check_for_done = path)
+      undone_files = list[indices_undone]
+    
+      # TODO! Does not work
+      if (length(undone_files) > 0) {
+        # cat('Your folder = ', subfolder_paths[i2], 'is missing the following:\n')  
+        # cat(undone_files)  
+      }
+    }
+ 
   # Check that all the files in the same folder have same column names --------
 
     # In other words, if for one file you have the column hand-placed points missing, it is
@@ -137,6 +182,10 @@ combine.data.from.multiple.folders = function(path_main, subfolder_paths, patter
       
       # replace the pupil value
       df_out[['pupil']] = df_out[['smooth']]
+      names(df_out) <- gsub(x = names(df_out), pattern = "smooth", replacement = "denoised")  
+      
+      # Make sure that the normalization is correct 
+      df_out = recheck.normalization(df_out, filecode)
       
       # Write to disk, this over 2 MB
       export.pupil.dataframe.toDisk(df_out, filename_out, data_path_out, 'reconstruction')
@@ -160,5 +209,93 @@ combine.data.from.multiple.folders = function(path_main, subfolder_paths, patter
     
 }
 
+recheck.normalization = function(df_out, filecode) {
+  
+  # TODO!
+  # Use now hard-coded normalization period
+  t = c(-5, 0)
+  i1 = which.min(abs(df_out$time_onsetZero - t[1]))
+  i2 = which.min(abs(df_out$time_onsetZero - t[2]))
+  
+  baseline_in = df_out$baseline[1]
+  baseline_out = median(df_out$pupil[i1:i2])
+  
+  if (abs(baseline_out) > 5) {
+  
+    warning('Baseline now = ', round(baseline_out, digits=2), '! Something wrong now! Renormalizing')
+    renormalized = renormalize.value(baseline_out, baseline_in, vector = df_out$pupil, ind = c(i1, i2))
+      df_out$pupil = renormalized[[1]]
+      df_out$baseline = renormalized[[2]]
+      df_out$baseline_median = df_out$baseline
+      df_out$baseline_mean = renormalized[[3]]
+    
+      # normalize.PLR.reduced(df_out, config_path = NA, 
+      #                        value_operator = 'median',
+      #                        normalize_method = 'hybrid',
+      #                        denormalize_first = TRUE,
+      #                        global_baseline = FALSE,
+      #                        indices = c(i1, i2))
+    
+    cat(' \n')
+    baseline_out = median(df_out$pupil[i1:i2])
+    cat('   ... After normalization we got the baseline to = ', round(baseline_out, digits=2), '\n')
+    
+  }
+  
+  return(df_out)
+  
+}
 
+renormalize.value = function(baseline_out, baseline_in, vector, ind) {
+  
+  vector_in_raw = vector*baseline_in/100 + baseline_in
+  
+  baseline_again = median(vector_in_raw[i1:i2])
+  baseline_mean = mean(vector_in_raw[i1:i2])
+  
+  denominator = baseline_again
+  nominator = baseline_again - vector_in_raw
+  vector = nominator / denominator
+  
+  # to percentage
+  vector = vector * -100  
+  
+  return(list(vector, baseline_again, baseline_mean))
+    
+}
 
+rename.folder.contents.to.remove.duplicates = function(files, name_string, fullpath) {
+  
+  name_string = tail(strsplit(name_string, .Platform$file.sep)[[1]],1)
+  
+  for (f in 1 : length(files)) {
+    
+    filecode = strsplit(tail(strsplit(files[f], .Platform$file.sep)[[1]],1), '_')[[1]][1]
+    just_filename = tail(strsplit(files[f], .Platform$file.sep)[[1]],1)
+    
+    # quick'n'dirty
+    # TODO! Fix for more efficient
+    df_in = read.csv(files[f])
+    
+    if (grepl('fusion', name_string)) {
+      filename_out = paste0(filecode, '_signals.csv')
+    } else {
+      filename_out = paste0(filecode, '.csv')
+    }
+    
+    export.pupil.dataframe.toDisk(df_in, filename_out, fullpath, name_string)
+    
+    fullpath_done = file.path(fullpath, 'to_be_deleted', fsep = .Platform$file.sep)
+    # check if they exist or need to be created
+    if (dir.exists(fullpath_done) == FALSE) {
+      cat('Creating the subdirectory for ToBeDeleted: ', fullpath_done)
+      dir.create(fullpath_done, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+    }
+    
+    from = files[f]
+    to = file.path(fullpath_done, just_filename, fsep = .Platform$file.sep)
+    file.rename(from, to)
+    
+  }
+  
+}

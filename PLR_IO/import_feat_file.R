@@ -1,6 +1,7 @@
-import.feat.file = function(file_in, color) {
+settsimport.feat.file = function(file_in, color) {
   
   # Import the file
+  # str(file_in)
   df_file_import <- read.table(file_in, header = TRUE, sep=',', stringsAsFactors=FALSE)
   # df_file_import <- read.csv(file_in, header = TRUE, sep=',', stringsAsFactors=FALSE)
   

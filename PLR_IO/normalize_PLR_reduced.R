@@ -1,24 +1,31 @@
 normalize.PLR.reduced = function(df, config_path, 
                                  value_operator = 'median',
-                                 normalize_method = 'hybrid') {
+                                 normalize_method = 'hybrid',
+                                 denormalize_first = FALSE,
+                                 global_baseline = TRUE,
+                                 indices = NA) {
   
   # define baseline
-  bins = import.binDefinitions(config_path)
-  baseline_period = get.baseline.period.from.bins(bins)
-  
-  b_i1 = which.min(abs(baseline_period[1] - df$time_onsetZero))
-  b_i2 = which.min(abs(baseline_period[2] - df$time_onsetZero))
+  if (is.na(indices)) {
+    bins = import.binDefinitions(config_path)
+    baseline_period = get.baseline.period.from.bins(bins)
+    b_i1 = which.min(abs(baseline_period[1] - df$time_onsetZero))
+    b_i2 = which.min(abs(baseline_period[2] - df$time_onsetZero))
+  } else {
+    b_i1 = indices[1]
+    b_i2 = indices[2]
+  }
   
   pupil_col = 'pupil'
   baseline_vector = df[[pupil_col]][b_i1:b_i2]
-  
+    
   # the stats of the vector
   baseline_stats = data.frame(mu = mean(baseline_vector, na.rm = TRUE),
-                              med = median(baseline_vector, na.rm = TRUE),
-                              stdev = sd(baseline_vector, na.rm = TRUE),
-                              variance = var(baseline_vector, na.rm = TRUE),
-                              n = length(baseline_vector))
-  
+                                med = median(baseline_vector, na.rm = TRUE),
+                                stdev = sd(baseline_vector, na.rm = TRUE),
+                                variance = var(baseline_vector, na.rm = TRUE),
+                                n = length(baseline_vector))
+    
   if (identical(value_operator, 'median')) {
     baseline = baseline_stats$med
   } else if (identical(value_operator, 'mean')) {
@@ -55,9 +62,10 @@ normalize.PLR.reduced = function(df, config_path,
                    'hinstfreq_8', 'hinstfreq_9', 'hinstfreq_10',
                    'hinstfreq_11', 'hamp_1', 'hamp_2', 'hamp_3',
                    'hamp_4', 'hamp_5', 'hamp_6', 'hamp_7', 'hamp_8', 
-                   'hamp_9', 'hamp_10', 'hamp_11', 'noiseNorm', 
-                   'noiseNonNorm', 'hiFreq', 'loFreq', 'base', 'smooth',
-                   'oscillations')
+                   'hamp_9', 'hamp_10', 'hamp_11', 'base_osc', 
+                   'oscillations', 'noiseNorm', 'noiseNonNorm',
+                   'hiFreq', 'loFreq', 'base', 'smooth',
+                   'denoised')
   
   to_keep_indices = is.na(match(vars_names_in, vars_to_excl))
   vars_to_normalize = vars_names_in[to_keep_indices]

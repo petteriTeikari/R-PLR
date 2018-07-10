@@ -15,7 +15,8 @@ imp.amelia.wrapper = function(pupil_df, t, y, error_frac, weights_norm, filecode
   
 }
 
-imp.imputeTS.wrapper = function(pupil_df, t, y, error_frac, weights_norm, filecodes, method_name, param_imp = list(), debugON = FALSE)  {
+imp.imputeTS.wrapper = function(pupil_df, t, y, error_frac, weights_norm, filecodes, method_name, param_imp = list(), 
+                                debugON = FALSE, verbose = FALSE)  {
   
   # imputeTS offers 18 different methods for imputing univariate time series
   # see: https://pdfs.semanticscholar.org/cf38/7a44ef973ac37568a8ca482b4add12b646eb.pdf
@@ -34,7 +35,10 @@ imp.imputeTS.wrapper = function(pupil_df, t, y, error_frac, weights_norm, fileco
     
     if (grepl('kalman', method_name)) {
       
-      cat('   .. Imputing missing data with Kalman option from imputeTS package, takes some seconds ... ')
+      if (verbose) {
+        cat('   .. Imputing missing data with Kalman option from imputeTS package')
+      }
+      
       options(warn=-1)
       if (grepl('StructTS', method_name)) {
         y_na = na.kalman(ts_pupil, model ="StructTS")
@@ -45,7 +49,9 @@ imp.imputeTS.wrapper = function(pupil_df, t, y, error_frac, weights_norm, fileco
                 method_name, ' is this a typo?')
       }
       options(warn=0)
-      cat('DONE!\n')
+      if (verbose) {
+        cat('DONE!\n')
+      }
       
       # TODO! Uncertainty estimate!
       
@@ -67,8 +73,8 @@ imp.imputeTS.wrapper = function(pupil_df, t, y, error_frac, weights_norm, fileco
     }
     
     if (debugON) {
-      ind_to_plot = param_imp[['debug_series']] 
-      debug.imputation.ts(t[,ind_to_plot], ts_pupil[,ind_to_plot], y_na[,ind_to_plot], na_found[,ind_to_plot])  
+      # ind_to_plot = param_imp[['debug_series']] 
+      # debug.imputation.ts(t[,ind_to_plot], ts_pupil[,ind_to_plot], y_na[,ind_to_plot], na_found[,ind_to_plot])  
     }
   
     # name the columns by subjects if the input is a matrix

@@ -1,16 +1,18 @@
-read.theMasterExcel = function(masterXLS_data_path, filename) {
+read.theMasterExcel = function(masterXLS_data_path = NA, filename = NA, fullpath = NA) {
   
-  file_in = file.path(masterXLS_data_path, filename, fsep = .Platform$file.sep)
+  if (is.na(fullpath)) {
+    fullpath = file.path(masterXLS_data_path, filename, fsep = .Platform$file.sep)
+  }
   
   group_codes = c("Control", "Glaucoma", "Diabetes", "Exceptional Cases (Neuro)")
   
   # From different sheets, "hard-coded names now", all imported as data frames
   # TODO, you could "loopify" these.
   # Contain 23 variables (4 April 2018)
-  excel_data_control = read_excel(file_in, sheet = group_codes[1])
-  excel_data_glaucoma = read_excel(file_in, sheet = group_codes[2])
-  excel_data_diabetes = read_excel(file_in, sheet = group_codes[3])
-  excel_data_neuro = read_excel(file_in, sheet = group_codes[4])
+  excel_data_control = read_excel(fullpath, sheet = group_codes[1])
+  excel_data_glaucoma = read_excel(fullpath, sheet = group_codes[2])
+  excel_data_diabetes = read_excel(fullpath, sheet = group_codes[3])
+  excel_data_neuro = read_excel(fullpath, sheet = group_codes[4])
   
   # TODO! R opening with a password?
   # XLConnect (0.2-13) can now read password protected excel files

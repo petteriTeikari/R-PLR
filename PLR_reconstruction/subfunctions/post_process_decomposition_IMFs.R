@@ -31,7 +31,7 @@ get.stats.of.IMFs.on.disk = function(path = '/home/petteri/Dropbox/LABs/SERI/PLR
  
 }
 
-IMF.indices.into.radiobutton.indices = function(IMF_index_estimates, df_IMFs) {
+IMF.indices.into.radiobutton.indices = function(IMF_index_estimates, df_IMFs, input_type) {
   
   no_of_IMFs = length(df_IMFs)
   selected_vector = vector(, length=no_of_IMFs)
@@ -49,7 +49,7 @@ IMF.indices.into.radiobutton.indices = function(IMF_index_estimates, df_IMFs) {
   return(selected_vector)
 }
 
-IMF.indices.from.radiobutton.indices = function(IMF_radiobutton_indices, df_IMFs, components) {
+IMF.indices.from.radiobutton.indices = function(IMF_radiobutton_indices, df_IMFs, components, input_type) {
   
   indices = list()
   
@@ -60,7 +60,11 @@ IMF.indices.from.radiobutton.indices = function(IMF_radiobutton_indices, df_IMFs
   
   for (i in 1 : length(IMF_radiobutton_indices)) {
 
-    something_added_already_per_component = !is.na(indices[[components[IMF_radiobutton_indices[i]]]])[1]
+    components
+    comp_i = components[IMF_radiobutton_indices[i]]
+    match_ind = indices[[comp_i]]
+    
+    something_added_already_per_component = !is.na(match_ind)[1]
     # cat(something_added_already_per_component, '\n')
     
     # nothing yet added
@@ -117,7 +121,8 @@ generate.signals.from.indices = function(df_IMFs, indices, components) {
   
 }
 
-estimate.imf.combination.indices = function(df_IMFs, filecode = NA, param_decomp = NA, verbose = TRUE) {
+estimate.imf.combination.indices = function(df_IMFs, input_type = '1stPass', path = NA,
+                                            filecode = NA, param_decomp = NA, verbose = TRUE) {
   
   names = colnames(df_IMFs)
   samples = length(df_IMFs[[1]])
@@ -128,9 +133,19 @@ estimate.imf.combination.indices = function(df_IMFs, filecode = NA, param_decomp
   
   noise_ind = vector()
   noise_nonNorm_ind = vector()
+  spike_ind = vector()
   high_osc_ind = vector()
   lo_osc_ind = vector()
   base_ind = c(no_of_IMFs-1, no_of_IMFs)
+  
+  if (grepl('loFreq', path)) {
+    noise_ind_max = 5
+  } else if (grepl('noise', path)) {
+    noise_ind_max = no_of_IMFs-2
+    
+  } else {
+    noise_ind_max = 4
+  }
   
   for (i in 1 : length(names)) {
     
@@ -141,31 +156,56 @@ estimate.imf.combination.indices = function(df_IMFs, filecode = NA, param_decomp
     stats = compute.stats.of.vector(vector)
     
     # Guess noise
-    if (i < 5) {
+    if (i <= noise_ind_max) {
       
-      if (stats$is.normal) {
-        noise_ind = c(noise_ind, i)
-      } else {
-        noise_nonNorm_ind = c(noise_nonNorm_ind, i)
-      }
+      if (grepl('1stPass', input_type)) {
+        if (stats$is.normal) {
+          noise_ind = c(noise_ind, i)
+        } else {
+          noise_nonNorm_ind = c(noise_nonNorm_ind, i)
+        }  
+        
+    } else {
+        
+      noise_ind = c(noise_ind, i)
+      
+    }
       
     # Guess hi and low
     } else if (i < no_of_IMFs - 1) {
       
-      if (stats$SD > 2) {
-        lo_osc_ind = c(lo_osc_ind, i)
-      } else {
-        high_osc_ind = c(high_osc_ind, i)
+      if (grepl('1stPass', input_type)) {
+      
+        if (stats$SD > 2) {
+          lo_osc_ind = c(lo_osc_ind, i)
+          
+        } else {
+          high_osc_ind = c(high_osc_ind, i)
+        }
+        
+      } else if (grepl('loFreq', input_type)) {
+        
+        if (abs(stats$mean) > 0.2) {
+          lo_osc_ind = c(lo_osc_ind, i)
+          
+        } else {
+          high_osc_ind = c(high_osc_ind, i)
+        }
+        
+      } else if (grepl('noise', input_type)) {
+        
+          spike_ind = c(spike_ind, i)
+        
       }
       
     }
     
-    
-    
     # Print stats
     if (verbose) {
       cat(colname, ': mean =', round(stats$mean,2), 
-                   ', SD =', round(stats$SD, 2), 
+                   ', SD =', round(stats$SD, 2),
+                   ', min =', round(stats$min, 2), 
+                   ', max =', round(stats$max, 2), 
                    ', is_normal =', stats$is.normal, 
                    ', kurtosis =', round(stats$kurtosis, 2),
                    ', skewness =', round(stats$skewness, 2), 
@@ -173,7 +213,6 @@ estimate.imf.combination.indices = function(df_IMFs, filecode = NA, param_decomp
     }
       
     # ggplot(data.frame(vector), aes(x=(1:length(vector))/30, y=vector)) + geom_line()
-    
     vectors[,i] = vector
     
   }
@@ -194,13 +233,32 @@ estimate.imf.combination.indices = function(df_IMFs, filecode = NA, param_decomp
   # pack for output
   indices = list()
   
+  if (grepl('loFreq', path)) {
+    indices[['noise']] = noise_ind
+    indices[['loFreq_hi']] = high_osc_ind
+    indices[['loFreq_lo']] = lo_osc_ind
+    indices[['base']] = base_ind  
+
+  } else if (grepl('hiFreq', path)) {
+    indices[['noise']] = noise_ind
+    indices[['hiFreq_hi']] = high_osc_ind
+    indices[['hiFreq_lo']] = lo_osc_ind
+    indices[['base']] = base_ind  
+    
+  } else if (grepl('noise', path)) {
+    indices[['noise']] = noise_ind
+    indices[['spikes']] = spike_ind
+    indices[['base']] = base_ind  
+        
+  } else {
     indices[['noiseNorm']] = noise_ind
     indices[['noiseNonNorm']] = noise_nonNorm_ind
     indices[['hiFreq']] = high_osc_ind
     indices[['loFreq']] = lo_osc_ind
     indices[['base']] = base_ind  
+  }
       
-    # signals = list()
+  # signals = list()
     
   # check the output still if you have empty indices, and if so 
   # add NA
@@ -225,6 +283,8 @@ compute.stats.of.vector = function(vector, p_thr = 0.05) {
   # The common ones
   stats$mean = mean(vector)
   stats$SD = sd(vector)
+  stats$max = max(vector)
+  stats$min = min(vector)
   stats$kurtosis = kurtosis(vector)
   stats$skewness = skewness(vector)
   

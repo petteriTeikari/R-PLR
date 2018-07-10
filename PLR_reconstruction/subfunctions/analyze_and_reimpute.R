@@ -1,13 +1,15 @@
-analyze.and.reimpute = function(filename_path, data_path_out, param, pupil_col = 'pupil', debug = FALSE) {
+analyze.and.reimpute = function(filename_path, data_path_out, param, pupil_col = 'pupil', 
+                                debug = FALSE, verbose = TRUE) {
   
   just_filename = tail(strsplit(filename_path, .Platform$file.sep)[[1]], 1)
   filecode = strsplit(just_filename, '_')[[1]][1]
-  cat(filecode, ' ')
+  # cat(filecode, ' ')
+  cat('.')
   
   df_in = read.csv(filename_path)
   
   # And get the previously corrected labels
-  gt_outlier_corr = is.na(df_in$pupil_outlier_corrected)
+  gt_outlier_corr = is.na(df_in[[pupil_col]])
   sum_1stPass = sum(gt_outlier_corr)
   
   if (length(df_in[[pupil_col]]) == 0) {
@@ -30,7 +32,7 @@ analyze.and.reimpute = function(filename_path, data_path_out, param, pupil_col =
   
   if (no_of_nans > 0) {
     
-    y_na = imp.imputeTS.wrapper(df_in, t, y, error_frac, weights_norm, filecode, 'imputeTS_kalman_StructTS', param)
+    y_na = imp.imputeTS.wrapper(df_in, t, y, error_frac, weights_norm, filecode, 'imputeTS_kalman_StructTS', param, verbose)
     no_of_nans2 = sum(is.na(y_na))
     
     # Output data frame
@@ -48,7 +50,6 @@ analyze.and.reimpute = function(filename_path, data_path_out, param, pupil_col =
     df_out[[pupil_col_2]] = na_vector
     
   }
-  
   
   # Get final outlier labels
   gt_out = gt_outlier_corr | gt_2nd_pass
@@ -68,8 +69,7 @@ analyze.and.reimpute = function(filename_path, data_path_out, param, pupil_col =
       geom_line()
   }
   
-  cat(' NAs=', sum(is.na(df_out[['pupil']])), ' ')
-  
+  # cat(' NAs=', sum(is.na(df_out[['pupil']])), ' \n')
   return(df_out)
   
 }

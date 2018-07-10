@@ -1,4 +1,4 @@
-compute.PLR.derivatives = function(t, y, deriv_smooth = 'loess', loess_span = 0.05,
+compute.PLR.derivatives = function(t, y, deriv_smooth = 'loess', loess_span = 0.15,
                                    debugON = FALSE, pre_denoising = TRUE) {
   
   # Smooth first with LOESS
@@ -43,13 +43,36 @@ compute.PLR.derivatives = function(t, y, deriv_smooth = 'loess', loess_span = 0.
   
   options(warn = -1)
   if (identical(deriv_smooth, 'loess')) {
-    
     loess.model1 = loess(y_diff1 ~ t, span = loess_span)
+    
       # Warning in simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  :
       # Chernobyl! trL>n 22
       # TODO try/catch when you have too many NAs in the y, increase span?
+    
+      # Warning messages:
+      #   1: In simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  :
+      #                       span too small.   fewer data values than degrees of freedom.
+      #                     2: In simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  :
+      #                                         pseudoinverse used at 15.433
+      #                                       3: In simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  :
+      #                                                           neighborhood radius 0.0365
+      #                                                         4: In simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  :
+      #                                                                             reciprocal condition number  0
+      #                                                                           5: In simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  :
+      #                                                                                               There are other near singularities as well. 0.0021622
+    
     options(warn = 0)
     y_diff1_model = predict(loess.model1, data.frame(t), se = TRUE)
+    
+    if (is.na(y_diff1_model)) {
+      span_increment = 0.1
+      cat(' initial span (', loess_span,
+          ') too small. Increasing it with ', span_increment, 'and try again')
+      # TODO real try catch instead of this
+      loess.model1 = loess(y_diff1 ~ t, span = loess_span+span_increment)
+      y_diff1_model = predict(loess.model1, data.frame(t), se = TRUE)
+    }
+    
     y_diff1_smooth = y_diff1_model$fit
     
   } else if (identical(deriv_smooth, 'someOtherMethod?')) {
@@ -57,7 +80,6 @@ compute.PLR.derivatives = function(t, y, deriv_smooth = 'loess', loess_span = 0.
   } else {
     warning('YOUR DIFF SMOOTHING NOT DEFINED YET, A TYPO FOR = ', deriv_smooth, '?')
   }
-  
   
   # Compute the 2nd derivative as well
   diff2 = diff(y_diff1_smooth, differences=1, lag=1) # 2nd derivative

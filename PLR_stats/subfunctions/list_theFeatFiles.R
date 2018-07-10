@@ -1,6 +1,6 @@
 list.theFeatFiles = function(data_path, pattern_to_find, dataset_type) {
   
-  files = list.files(path=data_path, pattern=pattern_to_find, recursive=TRUE)
+  files = list.files(path=data_path, pattern=pattern_to_find, recursive=FALSE)
   no_of_files = length(files)
   
   # Check that the input is correct
@@ -15,6 +15,6 @@ list.theFeatFiles = function(data_path, pattern_to_find, dataset_type) {
   #   warning('Dataset type = ', dataset_type, ' not defined yet, or is this a typo?')
   # }
   
-  files_fullpath = list.files(path=data_path, pattern=pattern_to_find, recursive=TRUE, full.names = TRUE)
+  files_fullpath = list.files(path=data_path, pattern=pattern_to_find, recursive=FALSE, full.names = TRUE)
   
 }

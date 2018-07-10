@@ -1,5 +1,6 @@
 density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_plot = 'mean',
                                   grouping_variable, combine_pathology = FALSE, 
+                                  select_groups = NA,
                                   parameters, settings) {
   
   # Go through every feature in the df_trim and plot the distribution of it 
@@ -11,6 +12,13 @@ density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_pl
   pCount = 1
   
   factors_in = toupper(df_trim[[grouping_variable]])
+  
+  if (!is.na(select_groups)) {
+    factors_keep = factors_in %in% select_groups
+    df_trim = df_trim[factors_keep,]
+    factors_in = factors_in[factors_keep]
+  }
+  
   factors_kept = parameters[['factors_keep']][[parameters[['main_factor']]]]
   
   if (combine_pathology) {
@@ -34,7 +42,7 @@ density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_pl
     }
   }
   
-  no_of_plot_cols = round(pCount / 4)
+  no_of_plot_cols = round(pCount / 3)
   no_of_plot_rows = ceiling(pCount / no_of_plot_cols)
   
   # For display

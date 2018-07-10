@@ -35,6 +35,8 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       parameters[['factors_keep']][[parameters[['main_factor']]]] = 
         c('Control', 'POAG', 'NTG', 'DISC SUSPECT')
         
+      parameters[['factors_keep']][[parameters[['main_factor']]]] = 
+        c('Control', 'POAG')
       
       # Secondary, tertiary, factors if needed
       # parameters[['factors_keep']][['Race']] = c(1)
@@ -44,11 +46,20 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       parameters[['match_reference']] = c('POAG', 'NTG', 'DISC SUSPECT')
       parameters[['matched_by']][['Age']] = 12 # threshold in years
 
+    # If you want to use custom column to select the subject to use
+      
+      parameters[['handpick_subjects']][['Flag']] = TRUE
+      parameters[['handpick_subjects']][['Column']] = 'InterimGlaucomavsControl2'
+      
     # The features of interest
       parameters[['factors']] = parameters[['main_factor']] # fixed variable
       parameters[['features']] = c('MaxConstr', 'QuickPhasic', '6SecondPIPR', 'SlopesON_2_phasic', 
                                    'SlopesOFF_2_phasic', 'DFA_Hest', 'MFDFA_spectrum_width_hq', 'MFDFA_spectrum_peak_hq')
     
+      parameters[['features']] = c('MaxConstr', 'QuickPhasic', '6SecondPIPR')
+      
+      
+      
     # The traces of interest
       
       time_col = "time_onsetZero"
@@ -87,6 +98,7 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       analysis_param[[i]] = parameters
       
       # and change the values need to be changed
+      analysis_param[[i]][['handpick_subjects']][['Flag']] = FALSE
       analysis_param[[i]][['match_reference']] = c('DM')
       analysis_param[[i]][['factors_keep']][[parameters[['main_factor']]]] = 
                                       c('Control', 'DM')

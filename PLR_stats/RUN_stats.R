@@ -57,6 +57,8 @@
     dir.create(data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
   
+  
+  
   # SOURCE
   source(file.path(script.dir, 'STAT_wrapper.R', fsep = .Platform$file.sep))
   
@@ -103,7 +105,9 @@
   # make things faster, also TODO! that all the traces have the same column names
   included_vars = c('time', 'time_onsetZero', 'time_maxDeriv_zero', 'pupil', 'error', 'error_fractional',
                     'pupil_raw', 'pupil_blink_thresholded', 'pupil_outlierfree', 'pupil_outlier_corrected', 'missForest', 
-                    'noiseNorm', 'noiseNonNorm', 'hiFreq', 'loFreq', 'base', 'smooth')
+                    'noiseNorm', 'noiseNonNorm', 'hiFreq', 'loFreq', 'base', 'denoised',
+                    'oscillations', 'oscillations_denoised', 
+                    'oscillations_hiFreq', 'base_osc')
   
   out_import = import.resampledReconstructions(data_path_traces, pattern_to_find, 
                                                dataset_type, included_vars, settings)

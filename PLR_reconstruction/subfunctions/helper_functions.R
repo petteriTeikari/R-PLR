@@ -11,7 +11,8 @@ get.files.for.reconstruction = function(data_path, pattern_to_find) {
 }
 
 # INPUT LIMITS
-dataset.lims = function(time_range, hard_limits, debugON, fps = 30) {
+dataset.lims = function(files_to_process, time_range, hard_limits, time_lims, 
+                        debugON, fps = 30) {
   
   # Get the minimum of time vector
   no_of_cols = length(time_range[[1]])
@@ -28,7 +29,8 @@ dataset.lims = function(time_range, hard_limits, debugON, fps = 30) {
   time_lims_ind =  c(time_limits[5], time_limits[6])
   
   # drop the outlier length recordings from modeling the input data
-  filter_out = plot.and.filter.time.lims(mat_range, time_limits, hard_limits, files_to_process, fps, debugON = FALSE)
+  filter_out = plot.and.filter.time.lims(mat_range, time_limits, hard_limits, time_lims,
+                                         files_to_process, fps, debugON = FALSE)
   exclusion_boolean = filter_out[[1]]
   time_new = filter_out[[2]]
   
@@ -37,7 +39,8 @@ dataset.lims = function(time_range, hard_limits, debugON, fps = 30) {
 }  
 
 # PLOT and FILTER SUBFUNCTION
-plot.and.filter.time.lims = function(mat_range, time_limits, hard_limits, files_to_process, fps, debugON) {
+plot.and.filter.time.lims = function(mat_range, time_limits, hard_limits, time_lims,
+                                     files_to_process, fps, debugON) {
   
   # Melt for plotting
   samples_before_df = melt(data.frame(before = mat_range[,5]))

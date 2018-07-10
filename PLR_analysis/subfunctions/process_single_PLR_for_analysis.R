@@ -60,10 +60,10 @@ process.single.PLR.for.analysis = function(filename_path, data_path_out, data_no
 
   # Plot the results
   # plot.PLRwithFeatures(data_frame_in, bins, features_blue, features_red,
-  #                        fractal_features, timefreq_features, 
+  #                        fractal_features, timefreq_features,
   #                        data_bins_blue, data_bins_red,
-  #                        normalize_on, normalize_method, normalize_indiv_colors, 
-  #                        baseline_period, light_range, 
+  #                        normalize_on, normalize_method, normalize_indiv_colors,
+  #                        baseline_period, light_range,
   #                        just_filename, data_images_path_out)
   
   # Export the results

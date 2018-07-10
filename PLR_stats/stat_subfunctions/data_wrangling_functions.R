@@ -103,7 +103,7 @@ convert.to.long.melt.format = function(df, grouping_variable) {
 
 select.subset.from.list = function(list_traces, subject_codes_traces, data_frame_feats,
                                    parameters, settings, data_type,
-                                   std_naming_of_cols) {
+                                   std_naming_of_cols, handpicked = NA) {
  
   # The desired factors to keep
   grouping_variable = parameters[['main_factor']]
@@ -134,22 +134,68 @@ select.subset.from.list = function(list_traces, subject_codes_traces, data_frame
   # get the grouping variables from Master data sheet matching the PLR traces
   all_grouping_vars = data_frame_feats[[grouping_variable]][master_indices]
   
-  # keep only the desired variables in the grouping variable
-  out = keep.the.factors.only.in.list(list_trim, all_grouping_vars,
-                                      grouping_variable, factor_keep_names)
-    list_out = out[[1]]
-    keep_indices = out[[2]]
+  if (is.na(handpicked)) {
+  
+    # keep only the desired variables in the grouping variable
+    out = keep.the.factors.only.in.list(list_trim, all_grouping_vars,
+                                        grouping_variable, factor_keep_names)
+      list_out = out[[1]]
+      keep_indices = out[[2]]
+    
+  } else {
+    
+    out = handpick.subjects(data_frame_feats, parameters)
+    
+      list_out = out[[1]]
+      keep_indices = out[[2]]
+    
+  }
   
   # grouping variables out
   grouping_vars_out = all_grouping_vars[keep_indices]
   
   # correspondence between the master data sheet and the returned list
   master_indices_out = master_indices[keep_indices]
-  
-  
+    
   return(list(list_out, master_indices_out, grouping_vars_out))
+    
   
 }
+
+handpick.subjects = function(data_frame_feats, parameters) {
+  
+  handpick_indices = data_frame_feats[[parameters[['handpick_subjects']][['Column']]]]
+  handpick_indices[is.na(handpick_indices)] = 0
+  handpick_indices = as.logical(handpick_indices)
+  
+  no_of_handpicked_subjets = sum(handpick_indices)
+  handpicked_subjects = data_frame_feats$`Subject code`[handpick_indices]
+  all_kept_subject_codes = data_frame_feats$`Subject code`[master_indices]
+  
+  # match this to the found traces
+  trimmed_indices = handpick_indices[master_indices]
+  no_of_handpicked_subjets_left = sum(trimmed_indices)
+  handpicked_subjects_left = all_kept_subject_codes[trimmed_indices]
+  
+  not_left = which(!(handpicked_subjects %in% handpicked_subjects_left))
+  cat('HANDPICKED COLUMN: ', parameters[['handpick_subjects']][['Column']], '\n')
+  cat('These subjects did not have traces recorded with _BR:\n')
+  cat(handpicked_subjects[not_left])
+  
+  keep_indices = which(all_kept_subject_codes %in% handpicked_subjects_left)
+  
+  col_names = names(list_trim)
+  list_out = list()
+  for (i in 1 : length(col_names)) {
+    mat = list_trim[[col_names[i]]]
+    list_out[[col_names[i]]] = mat[,keep_indices]
+  }
+  
+  
+  return(list(list_out, keep_indices))
+}
+
+
 
 age.match.groups = function(list_out, master_indices_out, grouping_vars_out,
                                  main_factor = 'Diagnosis', 

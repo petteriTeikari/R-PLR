@@ -53,7 +53,7 @@ define.whenLightWasOn = function(data_frame_in, verbose = FALSE, modeOfOnset = '
     time_around_onset = data_frame_in$time[w1:w2]
     pupil_around_onset = data_frame_in$pupil[w1:w2]
     
-    # plot(time_around_onset, pupil_around_onset)
+    # plot(time_around_onset, pupil_around_onset, type='l')
     
     # Quick and dirty estimate of some sort of onset based on the largest derivative of the signal
     
@@ -67,8 +67,16 @@ define.whenLightWasOn = function(data_frame_in, verbose = FALSE, modeOfOnset = '
     # just writing to the file that the light was on without for example knowing that the electronics 
     # of your device was dying causing problems with the light output?
     
+    if (sum(is.na(pupil_around_onset)) > 0) {
+      cat('     .. .. pupil size around the light onset contains NA-values (n =', sum(is.na(pupil_around_onset)), 
+          '), we impute them for computing derivatives\n')
+      pupil_around_onset = na.kalman(pupil_around_onset, model ="StructTS")
+    }
+    
     # Compute 1st and 2nd derivative
-    derivatives = compute.PLR.derivatives(time_around_onset, pupil_around_onset, debug=verbose)
+    derivatives = compute.PLR.derivatives(t =time_around_onset, 
+                                          y = pupil_around_onset, 
+                                          debug=verbose)
       diff1st = derivatives[[1]] # diff2nd = derivatives[[2]]
       max_index = which.max(diff1st)
       max_index_diff = max_index - (margin+1) # difference to logged light onset

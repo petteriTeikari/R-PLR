@@ -10,22 +10,22 @@ server <- function(input, output) {
   # https://gykovacsblog.wordpress.com/2017/05/15/installing-cairo-for-r-on-ubuntu-17-04/
   # apt-get install libcairo2-dev libgtk2.0-dev xvfb xauth xfonts-base libxt-dev
 
-  # 1)
-  # Debug data
-  #  path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/PLR_outliers_APP'
-  # df_raw = read.csv(file.path(path, 'PLR1058_BR_raw.csv', fsep = .Platform$file.sep))
-  # df_clean = read.csv(file.path(path, 'PLR1058_BR_clean.csv', fsep = .Platform$file.sep))
+  mode = 'outlier'
+  mode = 'imputation'
   
-  # 2)
-  # Open file from desired folder 
-  path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/outlier_free'
-  # path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/imputation_final/'
-  path_out = file.path(path, '..', 'outlier_free_corrected', fsep = .Platform$file.sep)
-  # path_out = file.path(path, '..', '..', 'recon_imputation_correction', fsep = .Platform$file.sep)
+  if (identical(mode, 'outlier')) {
+    path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/outlier_free'
+    path_out = file.path(path, '..', 'outlier_free_corrected', fsep = .Platform$file.sep) 
+  } else if (identical(mode, 'imputation')) {
+    path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/imputation_final/'
+    path_out = file.path(path, '..', 'recon_imputation_correction', fsep = .Platform$file.sep)
+  }
+    
   files_fullpath = list.files(path=path, pattern='*.csv', recursive=FALSE, full.names = FALSE)
-  # filename_in = 'PLR1010_BR_video_outlier_free.csv'
   filename_in = files_fullpath[1] # automatically always moves the done files away at the end of script then
   df_in = read.csv(file.path(path, filename_in, fsep = .Platform$file.sep))
+  
+  # TODO! check done
   
   cat(paste('OPENING FILE:', filename_in, '\n'))
   cat(paste('   from:', path, '\n'))

@@ -6,11 +6,13 @@ library(Cairo)   # For nicer ggplot2 output when deployed on Linux
 
 # TODO! How to get the current directory?
 base_dir = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/apps_Shiny/inspect_EMD'
-recon_dir = file.path(base_dir, '..', '..', 'PLR_reconstruction', 'subfunctions', fsep = .Platform$file.sep)
-IO_path = file.path(base_dir, '..', '..', 'PLR_IO', fsep = .Platform$file.sep)
+# recon_dir = file.path(base_dir, '..', '..', 'PLR_reconstruction', 'subfunctions', fsep = .Platform$file.sep)
+recon_dir = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/PLR_reconstruction/subfunctions'
+# IO_path = file.path(base_dir, '..', '..', 'PLR_IO', fsep = .Platform$file.sep)
+IO_path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/PLR_IO/'
 
 # DATA
-path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/recon_EMD'
+path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/recon_EMD_noise'
 pattern = '*.csv'
 path_out = file.path(path, 'IMF_fusion', fsep = .Platform$file.sep)
 move_path = file.path(path, 'DONE', fsep = .Platform$file.sep) # move input to, when done
@@ -77,24 +79,39 @@ server = function(input, output, session) {
       
       IMFs_plot = melt(df_plot_IMFs, id = 'time')
     
-    # Components
-    components = c('noiseNorm', 'noiseNonNorm', 'hiFreq', 'loFreq', 'base')
+    # define input
+    if (grepl('loFreq', path)) {
+      input_type = 'loFreq'
+      components = c('noise', 'loFreq_hi', 'loFreq_lo', 'base')
+    } else if (grepl('hiFreq', path)) {
+      input_type = 'hiFreq'
+      components = c('noise', 'hiFreq_hi', 'hiFreq_lo', 'base')
+    } else if (grepl('noise', path)) {
+      input_type = 'noise'
+      components = c('noise', 'spikes', 'base')
+    } else {
+      input_type = '1stPass'
+      components = c('noiseNorm', 'noiseNonNorm', 'hiFreq', 'loFreq', 'base')
+    }
     
     # Estimate the most likely combining of IMFs
-    IMF_index_estimates = estimate.imf.combination.indices(df_IMFs)
+    IMF_index_estimates = estimate.imf.combination.indices(df_IMFs, input_type, path = path)
     
     # convert to radiobutton selections
-    IMF_radiobutton_indices = IMF.indices.into.radiobutton.indices(IMF_index_estimates, df_IMFs)
+    IMF_radiobutton_indices = IMF.indices.into.radiobutton.indices(IMF_index_estimates, df_IMFs, input_type)
     
     # convert back
-    IMF_index_estimates = IMF.indices.from.radiobutton.indices(IMF_radiobutton_indices, df_IMFs, components)
+    IMF_index_estimates = IMF.indices.from.radiobutton.indices(IMF_radiobutton_indices, df_IMFs, components, input_type)
     
     # All IMFs and residue combined makes the input
     input_signal = rowSums(df_IMFs)
     df_input = data.frame(x = df_CEEMD$time, pupil = input_signal)
     
     # denoised signal
-    smooth_indices = IMF_radiobutton_indices > 2
+    smooth_indices = vector(, length = length(df_IMFs))
+    smooth_indices[] = TRUE
+    noise_indices = IMF_index_estimates$noise
+    smooth_indices[noise_indices] = FALSE
     smooth_signal = df_IMFs[smooth_indices]
     smooth_signal = rowSums(smooth_signal)
     df_input[['denoised']] = smooth_signal
@@ -157,6 +174,12 @@ server = function(input, output, session) {
       })
     
       # Save button
+      
+      # TODO!
+      # Do not allow the save if you do not have anything on hiFreq, loFreq and base,
+      # the annotator in this case did not pay attention, and this will cause problems
+      # further down the line
+    
       observeEvent(input$button_save, {
         cat('SAVE\n')
         # https://stackoverflow.com/questions/35022021/shiny-get-the-selected-radios-button-selected-value
@@ -171,6 +194,8 @@ server = function(input, output, session) {
           output_matrix[i, 3] = input[[id]]
         }
         
+        str(output_matrix)
+        
         col_names = c('Input_IMF', 'Input Index', 'Output_Signal')
         colnames(output_matrix) = col_names
         output_mapping = data.frame(output_matrix)
@@ -180,18 +205,35 @@ server = function(input, output, session) {
           # str(names_selected)
           # str(indices)
         
+        str(output_mapping)
+        
         IMF_index_estimates = IMF.indices.from.radiobutton.indices(indices, df_IMFs, components)
         signals = generate.signals.from.indices(df_IMFs, IMF_index_estimates, components)
         
         # smooth signal from non-noise values
-        smooth_list = signals[c(3,4,5)]
+        if (grepl('1stPass', path)) {
+          smooth_list = signals[c(3,4,5)]  
+          
+        } else if (grepl('loFreq', path)) {
+          smooth_list = signals[c(2,3,4)]  
+          
+        } else if (grepl('hiFreq', path)) {
+          smooth_list = signals[c(2,3,4)]  
+          
+        } else if (grepl('noise', path)) {
+          smooth_list = signals[c(2,3)]  
+          
+        }
+        
         smooth = vector(,length(smooth_list[1]))
         for (i in 1 : length(smooth_list)) {
           smooth = smooth + smooth_list[[i]]
         }
         
+        
+        
         # add to signals
-        signals[['smooth']] = smooth
+        signals[['denoised']] = smooth
         signals_df = data.frame(signals) # and to dataframe
         
         # save to disk
@@ -203,6 +245,12 @@ server = function(input, output, session) {
         cat(paste('     -- Moving the input file to:',  move_path, '\n'))
         from = file.path(path, just_filename_in, fsep = .Platform$file.sep)
         to = file.path(move_path, just_filename_in, fsep = .Platform$file.sep)
+        
+        # check if they exist or need to be created
+        if (dir.exists(move_path) == FALSE) {
+          cat('Creating the subdirectory for the DONE: ', move_path)
+          dir.create(move_path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+        }
         
         file.rename(from, to)
         
@@ -236,25 +284,76 @@ server = function(input, output, session) {
         }
       })
       
-      output$plotComp_loFreq <- renderPlot({
-        ggplot(signals_df, aes(time, loFreq)) + geom_line() +
-          coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
-      })
       
-      output$plotComp_hiFreq <- renderPlot({
-        ggplot(signals_df, aes(time, hiFreq)) + geom_line() +
-          coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
-      })
+      if (grepl('1stPass', path)) {
       
-      output$plotComp_noiseNonGaussian <- renderPlot({
-        ggplot(signals_df, aes(time, noiseNonNorm)) + geom_line() +
-          coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
-      })
-      
-      output$plotComp_noise <- renderPlot({
-        ggplot(signals_df, aes(time, noiseNorm)) + geom_line() +
-          coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
-      })
-    
+        output$plotComp_loFreq <- renderPlot({
+          ggplot(signals_df, aes(time, loFreq)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+        output$plotComp_hiFreq <- renderPlot({
+          ggplot(signals_df, aes(time, hiFreq)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+          
+        output$plotComp_noiseNonGaussian <- renderPlot({
+          ggplot(signals_df, aes(time, noiseNonNorm)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+        output$plotComp_noise <- renderPlot({
+          ggplot(signals_df, aes(time, noiseNorm)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+      } else if (grepl('loFreq', path)) {
+        
+        output$plotComp_loFreq <- renderPlot({
+          ggplot(signals_df, aes(time, loFreq_lo)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+        output$plotComp_hiFreq <- renderPlot({
+          ggplot(signals_df, aes(time, loFreq_hi)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+        output$plotComp_noise <- renderPlot({
+          ggplot(signals_df, aes(time, noise)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+      } else if (grepl('hiFreq', path)) {
+        
+        output$plotComp_loFreq <- renderPlot({
+          ggplot(signals_df, aes(time, hiFreq_lo)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+        output$plotComp_hiFreq <- renderPlot({
+          ggplot(signals_df, aes(time, hiFreq_hi)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+        output$plotComp_noise <- renderPlot({
+          ggplot(signals_df, aes(time, noise)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+      } else if (grepl('noise', path)) {
+        
+        output$plotComp_noise <- renderPlot({
+          ggplot(signals_df, aes(time, spikes)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+        output$plotComp_hiFreq <- renderPlot({
+          ggplot(signals_df, aes(time, noise)) + geom_line() +
+            coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
+        })
+        
+      }
+
     
 }
