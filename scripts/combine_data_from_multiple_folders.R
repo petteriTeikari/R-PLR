@@ -54,7 +54,7 @@ combine.data.from.multiple.folders = function(path_main = NA,
       # rename.folder.contents.to.remove.duplicates(file_listing[[colname]], subfolder_paths[i], fullpath)
       
       # do file listing again
-      files = list.files(path=fullpath, pattern=patterns[i], recursive=FALSE, full.names = TRUE)
+      file_listing[[colname]] = list.files(path=fullpath, pattern=patterns[i], recursive=FALSE, full.names = TRUE)
       
       no_of_files[i] = length(file_listing[[colname]])
     }
@@ -141,6 +141,8 @@ combine.data.from.multiple.folders = function(path_main = NA,
     vars_to_excl = c('X', 'X.1', 'X')
     vars_to_exclude_after = 'time' # don't have multiple time columns
     
+    normalization_problem = list()
+    
     for (f in 1 : length(file_listing[[1]])) { 
       
       for (i in 1 : length(file_listing)) {
@@ -185,7 +187,12 @@ combine.data.from.multiple.folders = function(path_main = NA,
       names(df_out) <- gsub(x = names(df_out), pattern = "smooth", replacement = "denoised")  
       
       # Make sure that the normalization is correct 
-      df_out = recheck.normalization(df_out, filecode)
+      out = recheck.normalization(df_out, i, filecode)
+        df_out = out[[1]]
+        
+        if (!is.na(out[[2]])) {
+          normalization_problem = c(normalization_problem, f)
+        }
       
       # Write to disk, this over 2 MB
       export.pupil.dataframe.toDisk(df_out, filename_out, data_path_out, 'reconstruction')
@@ -209,7 +216,7 @@ combine.data.from.multiple.folders = function(path_main = NA,
     
 }
 
-recheck.normalization = function(df_out, filecode) {
+recheck.normalization = function(df_out, i, filecode) {
   
   # TODO!
   # Use now hard-coded normalization period
@@ -220,9 +227,17 @@ recheck.normalization = function(df_out, filecode) {
   baseline_in = df_out$baseline[1]
   baseline_out = median(df_out$pupil[i1:i2])
   
+  if (length(baseline_out) == 0) {
+    cat('No baseline vector found')
+    baseline_out = median(df_out$missForest[i1:i2])  
+    df_out$pupil = df_out$missForest
+  }
+  
+  problem = NA
+  
   if (abs(baseline_out) > 5) {
   
-    warning('Baseline now = ', round(baseline_out, digits=2), '! Something wrong now! Renormalizing')
+    cat('Baseline now = ', round(baseline_out, digits=2), '! Something wrong now! Renormalizing')
     renormalized = renormalize.value(baseline_out, baseline_in, vector = df_out$pupil, ind = c(i1, i2))
       df_out$pupil = renormalized[[1]]
       df_out$baseline = renormalized[[2]]
@@ -238,11 +253,13 @@ recheck.normalization = function(df_out, filecode) {
     
     cat(' \n')
     baseline_out = median(df_out$pupil[i1:i2])
-    cat('   ... After normalization we got the baseline to = ', round(baseline_out, digits=2), '\n')
+    problem = 1
+    cat('   ... After normalization we got the baseline to = ', round(baseline_out, digits=2), 
+        ' for subject', filecode, '\n')
     
   }
   
-  return(df_out)
+  return(list(df_out, problem))
   
 }
 
@@ -283,8 +300,6 @@ rename.folder.contents.to.remove.duplicates = function(files, name_string, fullp
       filename_out = paste0(filecode, '.csv')
     }
     
-    export.pupil.dataframe.toDisk(df_in, filename_out, fullpath, name_string)
-    
     fullpath_done = file.path(fullpath, 'to_be_deleted', fsep = .Platform$file.sep)
     # check if they exist or need to be created
     if (dir.exists(fullpath_done) == FALSE) {
@@ -295,6 +310,10 @@ rename.folder.contents.to.remove.duplicates = function(files, name_string, fullp
     from = files[f]
     to = file.path(fullpath_done, just_filename, fsep = .Platform$file.sep)
     file.rename(from, to)
+    
+    export.pupil.dataframe.toDisk(df_in, filename_out, fullpath, name_string)
+    
+    
     
   }
   

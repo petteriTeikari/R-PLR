@@ -48,4 +48,12 @@ stats.point.features = function(data_frame_feats, list_traces, dataset_type,
                          grouping_variable, combine_pathology = TRUE, parameters, settings)
   }
   
+  # VIDEO Demonstration of stat
+  video.demo.of.groups(df_trim, df_trim_stats, list_traces,
+                       features = parameters[['features']], var_name_to_plot = 'mean',
+                       master_indices_out, grouping_variable, 
+                       combine_pathology = TRUE, parameters, settings)
+  
+  
+  
 }

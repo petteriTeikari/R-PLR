@@ -31,7 +31,7 @@ clean.and.reconstruct.PLR = function() {
                        parameters = param[['artifacts']],
                        RPLR_paths = paths[['RPLR']],
                        process_only_unprocessed = TRUE, # no need to re-process all 400 files
-                       path_check_for_done = paths[['data_out']][['EMD']]) # paths[['data_out']][['Final']]) 
+                       path_check_for_done = paths[['data_out']][['Final']]) # paths[['data_out']][['Final']]) 
       
   # Resample to same length
   batch.PLR.resample(data_path = paths[['data_in']][['resampling_corr']], 
@@ -65,7 +65,7 @@ clean.and.reconstruct.PLR = function() {
                            process_only_unprocessed = TRUE, # no need to re-process all 400 files
                            path_check_for_done = paths[['data_out']][['Final']], 
                            pupil_col = 'pupil',
-                           combine_with_database = TRUE,
+                           combine_with_database = FALSE,
                            database_path = paths[['data_out']][['Final']],
                            iterate_imputation = TRUE)
   
@@ -79,24 +79,24 @@ clean.and.reconstruct.PLR = function() {
                           path_check_for_done = paths[['data_out']][['Final']],
                           pupil_col = 'pupil')
   
-  # Run Empirical Mode Decomposition for denoising
-  batch.EMD.decomposition(data_path = paths[['data_out']][['EMD_fusion']], 
-                          RPLR_recon_path = paths[['recon']],
-                          parameters = param[['recon']],
-                          RPLR_paths = paths[['RPLR']],
-                          masterExcel = paths[['data_in']][['excelMasterPath']],
-                          process_only_unprocessed = FALSE,
-                          path_check_for_done = paths[['data_out']][['Final']],
-                          pupil_col = 'loFreq')
-  
-  batch.EMD.decomposition(data_path = paths[['data_out']][['EMD_fusion']], 
-                          RPLR_recon_path = paths[['recon']],
-                          parameters = param[['recon']],
-                          RPLR_paths = paths[['RPLR']],
-                          masterExcel = paths[['data_in']][['excelMasterPath']],
-                          process_only_unprocessed = FALSE,
-                          path_check_for_done = paths[['data_out']][['Final']],
-                          pupil_col = 'hiFreq')
+  # # Run Empirical Mode Decomposition for denoising
+  # batch.EMD.decomposition(data_path = paths[['data_out']][['EMD_fusion']], 
+  #                         RPLR_recon_path = paths[['recon']],
+  #                         parameters = param[['recon']],
+  #                         RPLR_paths = paths[['RPLR']],
+  #                         masterExcel = paths[['data_in']][['excelMasterPath']],
+  #                         process_only_unprocessed = FALSE,
+  #                         path_check_for_done = paths[['data_out']][['Final']],
+  #                         pupil_col = 'loFreq')
+  # 
+  # batch.EMD.decomposition(data_path = paths[['data_out']][['EMD_fusion']], 
+  #                         RPLR_recon_path = paths[['recon']],
+  #                         parameters = param[['recon']],
+  #                         RPLR_paths = paths[['RPLR']],
+  #                         masterExcel = paths[['data_in']][['excelMasterPath']],
+  #                         process_only_unprocessed = FALSE,
+  #                         path_check_for_done = paths[['data_out']][['Final']],
+  #                         pupil_col = 'hiFreq')
   
   
 
@@ -111,12 +111,12 @@ clean.and.reconstruct.PLR = function() {
                                       RPLR_scripts_path = paths[['RPLR']][['scripts']],
                                       subfolder_paths = c('imputation_final',
                                                           'recon_EMD',
-                                                          'recon_EMD_subcomp_fusion',
+                                                          # 'recon_EMD_subcomp_fusion',
                                                           file.path('recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep)), 
                                      patterns = c('*.csv',
                                                   '*.csv',
-                                                  '*.csv',
-                                                  '*_fusion.csv'))
+                                                  # '*.csv',
+                                                  '*.csv'))
   
   # Compute 1st and 2nd derivatives (i.e. velocity and acceleration) from 
   # the EMD denoised pupil signals

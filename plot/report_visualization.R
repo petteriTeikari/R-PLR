@@ -4,6 +4,7 @@ report.visualization = function(filename_path = NA,
   library(ggpubr)
   library(cowplot)
   library(ggplot2)
+  theme_set(theme_minimal())
   
   library(dplyr)
   library(reshape2)
@@ -12,7 +13,7 @@ report.visualization = function(filename_path = NA,
   
   # https://stackoverflow.com/questions/41096293/cowplot-made-ggplot2-theme-disappear-how-to-see-current-ggplot2-theme-and-res
   # https://cran.r-project.org/web/packages/cowplot/vignettes/introduction.html
-  theme_set(theme_minimal())
+  
   
   # INIT --------------------------------------------------------------------
   
@@ -185,14 +186,15 @@ plot_file.visualization = function(data_to_plot, plot_param, path_input) {
   
 }
 
-plot.trace.visualization = function(data, x_col, y_cols, 
+plot.trace.visualization = function(data, x_col, y_cols, y_col2 = NA,
                                     title_str, subtitle_str = NA,
                                     xlab_str, ylab_str, 
                                     ylims = NA,
                                     xlims = NA,
                                     data_format = 'dataframe',
                                     plot_type = 'PLR',
-                                    plot_param) {
+                                    plot_param,
+                                    ratios = NA) {
   
   if (identical(data_format, 'list')) {
     variable_names = names(data)
@@ -204,8 +206,19 @@ plot.trace.visualization = function(data, x_col, y_cols,
   x_ind = variable_names %in% x_col
   y_ind = variable_names %in% y_cols
   
-  # take the subset
-  df_plot = data.frame(x = data[x_ind], y = data[y_ind])
+  # get the ratio of two columns for visualization purposes
+  if (!is.na(y_col2)) {
+    y1 = unlist(data[y_ind])
+    y_ind2 = variable_names %in% y_col2  
+    y2 = unlist(data[y_ind2])
+    y_mixed = ratios[1]*y1 + ratios[2]*y2
+    df_plot = data.frame(x = data[x_ind], y = data[y_ind])
+    df_plot[[y_cols]] = y_mixed
+    
+  } else {
+    # take the subset
+    df_plot = data.frame(x = data[x_ind], y = data[y_ind])  
+  }
   
   # Rename the columns as "y." was added now
   names(df_plot) <- gsub(x = names(df_plot), pattern = "\\y.", replacement = "")
@@ -229,6 +242,8 @@ plot.trace.visualization = function(data, x_col, y_cols,
   if (identical(plot_type, 'PLR')) {  
     theme(legend.position = "top", legend.text.align = 0, 
           legend.text=element_text(size=rel(0.65))) # not the most adaptive now, TODO!
+  } else if (identical(plot_type, 'PLR_video')) {  
+    theme(legend.position="none")
   } else {
     theme(legend.position="none")
   }

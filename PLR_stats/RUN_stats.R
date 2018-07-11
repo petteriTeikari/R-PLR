@@ -19,7 +19,7 @@
 
 
   # install.packages("MAMSE")
-  library(MAMSE) # for ROC
+  # library(MAMSE) # for ROC
   # install.packages("pROC")
   # library(pROC) # for ROC
 
@@ -128,7 +128,7 @@
 # PROCESS --------------------------------------------------------------
   
   # CONTINUE, GLOBAL NAMES!
-  
+
   # Gather everything here that you might wanto to do for the data
   STAT.wrapper(data_frame_feats, list_traces, subject_codes_traces,
                dataset_type, derived_feats_names, 

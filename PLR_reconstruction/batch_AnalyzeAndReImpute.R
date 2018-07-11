@@ -84,8 +84,11 @@ batch.AnalyzeAndReImpute = function(data_path = NA, RPLR_recon_path = NA,
         df_out[['missForest']] = matrix_imputed[,i]
         df_out[['pupil']] = matrix_imputed[,i]
         
+        just_filename = tail(strsplit(files_to_process[i], .Platform$file.sep)[[1]], 1)
+        filecode = strsplit(just_filename, '_')[[1]][1]
+        
         export.pupil.dataframe.toDisk(df_out, 
-                                      files_to_process[i], 
+                                      paste0(filecode, '.csv'),
                                       data_path_out, 'missForest')
       }
     }

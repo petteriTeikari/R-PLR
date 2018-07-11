@@ -1,4 +1,4 @@
-settsimport.feat.file = function(file_in, color) {
+import.feat.file = function(file_in, color) {
   
   # Import the file
   # str(file_in)
@@ -33,6 +33,8 @@ settsimport.feat.file = function(file_in, color) {
   return(list(new_feats_per_file, derived_feats_names_blue, derived_feats_names_red, derived_feats_names_global))
   
 }
+
+
 
 reshape.dataframeRowsToCols = function(df_file_in, color) {
   

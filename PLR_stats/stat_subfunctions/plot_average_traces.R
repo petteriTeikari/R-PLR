@@ -2,7 +2,7 @@ plot.average.traces = function(data_frame_feats, list_traces, subject_codes_trac
                                dataset_type, derived_feats_names, 
                                parameters, settings) {
   
-  # Pre-process, i.e. wrangle the data
+    # Pre-process, i.e. wrangle the data
   return_list = pre.process.wrapper.for.average.traces(data_frame_feats, list_traces, subject_codes_traces,
                                          parameters, settings)
     stats_df_out = return_list[[1]]

@@ -28,7 +28,8 @@ process.artifact.file <- function(path, data_path_out, IO_path, source_path,
                                        sigma_multip, debug_clean_on)
     
     # Save to disk
-    export.pupil.dataframe.toDisk(data_frame_outlierfree, filename_path, data_path_out, 'outlier_free')
+    filecode = strsplit(tail(strsplit(filename_path, .Platform$file.sep)[[1]],1), '_')[[1]][1]
+    export.pupil.dataframe.toDisk(data_frame_outlierfree, paste0(filecode, '.csv'), data_path_out, 'outlier_free')
     
     # Plot
     if(plot_output == TRUE) {

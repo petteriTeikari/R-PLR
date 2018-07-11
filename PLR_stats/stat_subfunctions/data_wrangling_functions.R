@@ -144,7 +144,7 @@ select.subset.from.list = function(list_traces, subject_codes_traces, data_frame
     
   } else {
     
-    out = handpick.subjects(data_frame_feats, parameters)
+    out = handpick.subjects(list_trim, data_frame_feats, parameters, master_indices)
     
       list_out = out[[1]]
       keep_indices = out[[2]]
@@ -162,7 +162,7 @@ select.subset.from.list = function(list_traces, subject_codes_traces, data_frame
   
 }
 
-handpick.subjects = function(data_frame_feats, parameters) {
+handpick.subjects = function(list_trim, data_frame_feats, parameters, master_indices) {
   
   handpick_indices = data_frame_feats[[parameters[['handpick_subjects']][['Column']]]]
   handpick_indices[is.na(handpick_indices)] = 0

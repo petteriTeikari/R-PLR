@@ -17,6 +17,22 @@ pre.process.wrapper.for.average.traces = function(data_frame_feats, list_traces,
     master_indices_out = out[[2]]
     grouping_vars_out = toupper(out[[3]])
     
+    if (parameters[['handpick_subjects']][['Flag']]) {
+      selected = c('CONTROL', 'NTG', 'POAG')
+      selected_ind = grouping_vars_out %in% selected
+      master_indices_out = master_indices_out[selected_ind]
+      grouping_vars_out = grouping_vars_out[selected_ind]
+      
+      names_list = names(list_out)
+      for (i in 1 : length(names_list)) {
+        list_out[[names_list[i]]] = list_out[[names_list[i]]][,selected_ind]
+      }
+        
+      
+    } else {
+      selected = NA
+    }
+    
     # make this match the following steps
     list_agematched = list_out
     
