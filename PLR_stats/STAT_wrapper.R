@@ -114,7 +114,7 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
                                dataset_type, derived_feats_names,
                                analysis_param[[analys_ind]], settings)
       
-      # Show the feats then
+       # Show the feats then
       p2 = stats.point.features(data_frame_feats, list_traces, dataset_type,
                                 master_indices_out, derived_feats_names, plot_type = 'boxplot',
                                 parameters = analysis_param[[analys_ind]], settings)

@@ -13,7 +13,7 @@ density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_pl
   
   factors_in = toupper(df_trim[[grouping_variable]])
   
-  if (!is.na(select_groups)) {
+  if (!is.na(select_groups[1])) {
     factors_keep = factors_in %in% select_groups
     df_trim = df_trim[factors_keep,]
     factors_in = factors_in[factors_keep]
@@ -68,20 +68,23 @@ density.plot.subfunction = function(p, feat_vectors, factors_in,
   
   # Compute the ROC Statistics
   ROC_out = compute.ROC.statistics.of.data.frame(y = df_feats[[var_name_to_plot]], 
-                                                 group_factors = df_feats[[grouping_variable]], 
-                                                 to_compare_out = 'Control')
-  
+                                                  group_factors = df_feats[[grouping_variable]], 
+                                                  to_compare_out = 'CONTROL')
+
   # TODO! Add this to other plots as well!
   # create new column names with the AUC score in it
   levelnames_from = levels(df_feats$Diagnosis)
   no_of_factors = length(levelnames_from)
   levelnames_to = vector(, length=no_of_factors)
+  
   for (i in 1 : no_of_factors) {
+    
     if (i == 1) {
       levelnames_to[[i]] = levels(df_feats$Diagnosis)[i]
     } else {
+      AUC_value = round(ROC_out[[i-1]]$AUC, digits=2)
       levelnames_to[[i]] = paste0(levels(df_feats$Diagnosis)[i],
-                                 ' | AUC = ', ROC_out$AUC[i-1])
+                                 ' | AUC = ', AUC_value)
     }
   }
   # remap with plyr's function
@@ -101,7 +104,7 @@ density.plot.subfunction = function(p, feat_vectors, factors_in,
 }
 
 
-compute.ROC.statistics.of.data.frame = function(y, group_factors, to_compare_out = 'Control') {
+compute.ROC.statistics.of.data.frame = function(y, group_factors, to_compare_out = 'CONTROL') {
 
   # Do pairwise, and multiclass ROC?
   # http://scikit-learn.org/stable/auto_examples/model_selection/plot_roc.html
@@ -112,10 +115,11 @@ compute.ROC.statistics.of.data.frame = function(y, group_factors, to_compare_out
   
   # Go through all the combinations
   ROC_OUT = list()
-  contains_to_compare_to = vector(, length(dim(comb_indices)[2]))
-  contains_other_factor = vector(, length(dim(comb_indices)[2]))
+  no_of_comb = dim(comb_indices)[2]
+  contains_to_compare_to = vector(, length = no_of_comb)
+  contains_other_factor = vector(, length = no_of_comb)
   
-  for (c in 1 : dim(comb_indices)[2]) {
+  for (c in 1 : no_of_comb) {
     
     level1 = factor_names[comb_indices[1,c]] # e.g. Control
     level2 = factor_names[comb_indices[2,c]] # e.g. POAG
@@ -132,16 +136,11 @@ compute.ROC.statistics.of.data.frame = function(y, group_factors, to_compare_out
     y2 = y[ind2] # subset of y-values
     
     # TODO! Make the ROC work
-    # ROC = pairwise.ROC(y1, y2, level1, level2)
-    ROC = NA
+    ROC_OUT[[c]] = pairwise.ROC(y1, y2, level1, level2)
     
   }
   
-  ROC_out_reduced = data.frame(AUC = ROC[contains_to_compare_to], 
-                               factor_other = contains_other_factor[contains_to_compare_to],
-                               stringsAsFactors = FALSE)
-  
-  return(ROC_out_reduced)  
+  return(ROC_OUT)  
   
 }
 
@@ -156,6 +155,12 @@ pairwise.ROC = function(y1, y2, level1, level2, package='NONE', norm__p_thr = 0.
   df = data.frame(y = c(y1, y2), factor = c(rep(level1, length(y1)), rep(level2, length(y2))))
   df[['factor']] = as.integer(df[['factor']])
   # ggplot(df, aes(x=y)) + geom_density(aes(color = factor,fill = factor), alpha=0.1)
+  
+  # "easyROC: An Interactive Web-tool for ROC Curve Analysis Using R Language Environment" 
+  # The R Journal, 8(2):213-230 if you use easyROC in your analysis.
+  # http://www.biosoft.hacettepe.edu.tr/easyROC/
+  
+  # IMPLEMENT THE ABOVE MAYBE?
   
   if (identical(package, 'MAMSE')) {
     # from MAMSE package
@@ -173,7 +178,57 @@ pairwise.ROC = function(y1, y2, level1, level2, package='NONE', norm__p_thr = 0.
     optimal.cutpoint.Youden <- optimal.cutpoints(X = df, status = "factor", tag.healthy = 1, 
                                                  methods = "Youden", data = df, pop.prev = NULL, 
                                                  control = control.cutpoints(), ci.fit = FALSE, conf.level = 0.95, trace = FALSE)
+  } else if (identical(package, 'NONE')) {
+  
+    # these are the possible cutoffs 
+    unique_y = sort(unique(c(y1,y2)))
+    
+    # preallocate
+    tp = vector(,length(unique_y)); fp = vector(,length(unique_y))
+    tn = vector(,length(unique_y)); fn = vector(,length(unique_y))
+    
+    # which is larger
+    y1_median = median(y1)
+    y2_median = median(y2)
+    
+    for (u in 1 : length(unique_y)) {
+      tp[u] = sum(y1 <= unique_y[u])
+      fp[u] = sum(y2 < unique_y[u])
+      tn[u] = sum(y2 >= unique_y[u])
+      fn[u] = sum(y1 > unique_y[u])
+    }
+    
+    # http://arogozhnikov.github.io/2015/10/05/roc-curve.html
+    
+    # true positive rate (part of correctly classified signal, also known as 
+    # recall, sensitivity or signal efficiency).
+    TPR = tp / (tp + fn)
+    
+    # background efficiency
+    FPR = fp / (fp + tn)
+    
+    # tnr
+    TNR = tn / (fp + tn)
+    
+    # specificity
+    FNR = fn / (tp + fn)
+   
+    # AUC
+    AUC = trapz(FPR, TPR)
+    
+    list_out = list()
+      list_out[['cutoffs']] = unique_y
+      list_out[['TPR']] = TPR
+      list_out[['FPR']] = FPR
+      list_out[['TNR']] = TNR
+      list_out[['FNR']] = FNR
+      list_out[['AUC']] = AUC
+    
+    return(list_out)
+      
   }
+  
+  
   
   
   # TODO! each of the means come with uncertainties as well, that you could use
@@ -204,6 +259,8 @@ get.possible.combinations = function(factors, to_compare_together = 2) {
 combine.pathologies = function(factors_in, factors_kept) {
   
   factors_out = factors_in
+  str(factors_out)
+  str(factors_in)
   
   for (i in 1 : length(factors_kept)) {
     
@@ -218,6 +275,8 @@ combine.pathologies = function(factors_in, factors_kept) {
 }
 
 pathology.lookup.table = function(group_name_in) {
+  
+  str(group_name_in)
   
   group_name_in = toupper(group_name_in)
   
