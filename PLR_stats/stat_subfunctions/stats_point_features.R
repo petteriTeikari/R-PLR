@@ -20,7 +20,37 @@ stats.point.features = function(data_frame_feats, list_traces, dataset_type,
   #                                         parameters_stats = parameters[['stats']],
   #                                         subject_codes)
   
-    # Plot finally 
+  # Export the used data
+  if (parameters[['handpick_subjects']][['Flag']]) {
+    filename_path = paste0(parameters[['name']], '_handpicked.csv')
+  } else {
+    if (!parameters[['flags']][['skip_age_match']]) {
+      filename_path = paste0(parameters[['name']], '_ageMatched.csv')  
+    } else {
+      filename_path = paste0(parameters[['name']], '_non_ageMatched.csv')  
+    }
+  }
+  
+  df_trim_export = df_trim
+  df_trim_export[['Code']] = subject_codes
+  names_to_keep = !grepl('Uncertainty', colnames(df_trim_export)) # remove uncertainties
+  export.pupil.dataframe.toDisk(df_trim_export[names_to_keep], filename_path, data_path_out, 'feat_stats')
+  
+  # traces 
+  traces_out = list_traces$pupil[,master_indices_out]
+  colnames(traces_out) =  subject_codes
+  file_out = gsub('.csv', '_traces.csv', filename_path)
+  path_out = file.path(data_path_out, file_out, fsep = .Platform$file.sep)
+  write.table(traces_out, file = path_out, sep = ",",  row.names = FALSE) # , col.names = N
+  
+  # time, same for all
+  time_vector_out = list_traces$time_onsetZero[,1]
+  file_out = gsub('.csv', '_time_vector.csv', filename_path)
+  path_out = file.path(data_path_out, file_out, fsep = .Platform$file.sep)
+  write.table(time_vector_out, file = path_out, sep = ",",  row.names = FALSE, col.names = 'time_onsetZero') # , col.names = N
+ 
+  
+  # Plot finally 
   if (identical(plot_type, 'boxplot')) {
     p = boxplot.the.features(df_trim, df_trim_stats = df_trim, 
                              feats_to_keep = parameters[['features']], 

@@ -82,6 +82,13 @@ density.plot.subfunction = function(p, feat_vectors, factors_in,
     if (i == 1) {
       levelnames_to[[i]] = levels(df_feats$Diagnosis)[i]
     } else {
+     
+      saved_in_ROC_list = ROC_out[[i-1]]
+      # diff = abs(ROC_out[[i-1]]$cutoffs - (-49))
+      # sensitivity = ROC_out[[i-1]]$TPR[cutoff_quickndirty_ind]
+      # specificity = ROC_out[[i-1]]$FNR [cutoff_quickndirty_ind]
+      # cat(feature_name, ' | ', levels(df_feats$Diagnosis)[i], ': spec = ', specificity, ', sens =', sensitivity, '\n')
+      
       AUC_value = round(ROC_out[[i-1]]$AUC, digits=2)
       levelnames_to[[i]] = paste0(levels(df_feats$Diagnosis)[i],
                                  ' | AUC = ', AUC_value)
@@ -215,6 +222,7 @@ pairwise.ROC = function(y1, y2, level1, level2, package='NONE', norm__p_thr = 0.
    
     # AUC
     AUC = trapz(FPR, TPR)
+    
     
     list_out = list()
       list_out[['cutoffs']] = unique_y

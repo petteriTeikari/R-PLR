@@ -24,6 +24,9 @@ batch.PLR.artifacts = function(data_path = NA, RPLR_artifacts_path = NA,
   library(ggplot2)
   # library(shiny)
   
+  # install.packages("changepoint")
+  library(changepoint)
+  
   # SOURCE SUBFUNCTIONS
   source(file.path(source_path, 'process_artifact_file.R', fsep = .Platform$file.sep))
   source(file.path(IO_path, 'define_pupillometerFilesToProcess.R', fsep = .Platform$file.sep))

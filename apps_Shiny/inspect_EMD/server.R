@@ -12,14 +12,15 @@ recon_dir = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/P
 IO_path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/PLR_IO/'
 
 # DATA
-path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/recon_EMD_noise'
+path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/recon_EMD_pupil'
 pattern = '*.csv'
-path_out = file.path(path, 'IMF_fusion', fsep = .Platform$file.sep)
+path_out = file.path(path, '..', 'reconstructed', fsep = .Platform$file.sep)
 move_path = file.path(path, 'DONE', fsep = .Platform$file.sep) # move input to, when done
 
 # Source the subfunctions
 source(file.path(recon_dir, 'post_process_decomposition_IMFs.R', fsep = .Platform$file.sep))
 source(file.path(IO_path, 'export_pupil_dataframe_toDisk.R', fsep = .Platform$file.sep))
+source(file.path(IO_path, 'check_for_done_filecodes.R', fsep = .Platform$file.sep))
 
 server = function(input, output, session) {
     
@@ -27,10 +28,18 @@ server = function(input, output, session) {
 
     # INPUT
     files_fullpath = list.files(path=path, pattern=pattern, recursive=FALSE, full.names = TRUE)
+    
+    # check undone better
+    process_only_unprocessed = TRUE
+    if (process_only_unprocessed) {
+      indices_undone = check.for.done.filecodes(files_fullpath, path_out)
+      files_fullpath = files_fullpath[indices_undone]
+    }
+    
     filename_in = files_fullpath[1] # automatically always moves the done files away at the end of script then
-    cat(paste('Input file:', filename_in, '\n'))
     filecode = strsplit(tail(strsplit(filename_in, .Platform$file.sep)[[1]],1), '_')[[1]][1]
-        
+    cat(paste('Input file:', filename_in, '\n'))
+    
     # Read in
     df_CEEMD = read.csv(filename_in)
     CEEMD_names = colnames(df_CEEMD)
@@ -211,16 +220,16 @@ server = function(input, output, session) {
         signals = generate.signals.from.indices(df_IMFs, IMF_index_estimates, components)
         
         # smooth signal from non-noise values
-        if (grepl('1stPass', path)) {
+        if (grepl('1stPass', input_type)) {
           smooth_list = signals[c(3,4,5)]  
           
-        } else if (grepl('loFreq', path)) {
+        } else if (grepl('loFreq', input_type)) {
           smooth_list = signals[c(2,3,4)]  
           
-        } else if (grepl('hiFreq', path)) {
+        } else if (grepl('hiFreq', input_type)) {
           smooth_list = signals[c(2,3,4)]  
           
-        } else if (grepl('noise', path)) {
+        } else if (grepl('noise', input_type)) {
           smooth_list = signals[c(2,3)]  
           
         }
@@ -237,8 +246,10 @@ server = function(input, output, session) {
         signals_df = data.frame(signals) # and to dataframe
         
         # save to disk
-        export.pupil.dataframe.toDisk(output_mapping, filename_in, path_out, 'mapping')
-        export.pupil.dataframe.toDisk(signals_df, filename_in, path_out, 'signals')
+        just_filename = paste0(filecode, '.csv')
+        export.pupil.dataframe.toDisk(output_mapping, just_filename, path_out, 'mapping')
+        export.pupil.dataframe.toDisk(signals_df, just_filename, path_out, 'signals')
+        
         
         # Move the done file to done
         just_filename_in = tail(strsplit(filename_in, .Platform$file.sep)[[1]],1)
@@ -285,7 +296,7 @@ server = function(input, output, session) {
       })
       
       
-      if (grepl('1stPass', path)) {
+      if ( (grepl('1stPass', input_type)) | (grepl('pupil', path)) ) {
       
         output$plotComp_loFreq <- renderPlot({
           ggplot(signals_df, aes(time, loFreq)) + geom_line() +
@@ -307,7 +318,7 @@ server = function(input, output, session) {
             coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
         })
         
-      } else if (grepl('loFreq', path)) {
+      } else if (grepl('loFreq', input_type)) {
         
         output$plotComp_loFreq <- renderPlot({
           ggplot(signals_df, aes(time, loFreq_lo)) + geom_line() +
@@ -324,7 +335,7 @@ server = function(input, output, session) {
             coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
         })
         
-      } else if (grepl('hiFreq', path)) {
+      } else if (grepl('hiFreq', input_type)) {
         
         output$plotComp_loFreq <- renderPlot({
           ggplot(signals_df, aes(time, hiFreq_lo)) + geom_line() +
@@ -341,7 +352,7 @@ server = function(input, output, session) {
             coord_cartesian(xlim = ranges2$x, ylim = ranges2$y, expand = FALSE)
         })
         
-      } else if (grepl('noise', path)) {
+      } else if (grepl('noise', input_type)) {
         
         output$plotComp_noise <- renderPlot({
           ggplot(signals_df, aes(time, spikes)) + geom_line() +

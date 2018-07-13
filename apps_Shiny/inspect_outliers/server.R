@@ -20,12 +20,22 @@ server <- function(input, output) {
     path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/imputation_final/'
     path_out = file.path(path, '..', 'recon_imputation_correction', fsep = .Platform$file.sep)
   }
+  
+  IO_path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/PLR_IO/'
+  source(file.path(IO_path, 'check_for_done_filecodes.R', fsep = .Platform$file.sep))
     
   files_fullpath = list.files(path=path, pattern='*.csv', recursive=FALSE, full.names = FALSE)
+
+  # check undone better
+  process_only_unprocessed = TRUE
+  if (process_only_unprocessed) {
+    check_path = file.path(path_out, '..', 'reconstructed', fsep = .Platform$file.sep)
+    indices_undone = check.for.done.filecodes(files_fullpath, check_path)
+    files_fullpath = files_fullpath[indices_undone]
+  }
+  
   filename_in = files_fullpath[1] # automatically always moves the done files away at the end of script then
   df_in = read.csv(file.path(path, filename_in, fsep = .Platform$file.sep))
-  
-  # TODO! check done
   
   cat(paste('OPENING FILE:', filename_in, '\n'))
   cat(paste('   from:', path, '\n'))
@@ -45,63 +55,57 @@ server <- function(input, output) {
   correction_for_imputation = FALSE
   output_corr_column = 'pupil_outlier_corrected'
   
-  if (grepl('corrected', filename_in, fixed=TRUE)) {
-  
-    if (grepl('imputation', filename_in, fixed=TRUE)) {
+  if (identical(mode, 'imputation')) {
       
-      cat('MODE: Correcting the IMPUTATION\n')
-      correction_for_imputation = TRUE    
+    cat('MODE: Correcting the IMPUTATION\n')
+    correction_for_imputation = TRUE    
+    
+    if (grepl('missForest', filename_in, fixed=TRUE)) {
+      output_corr_column = 'missForest'
+      toBeReplaced = '_missForest'
+    } else {
+      toBeReplaced = '_imputation.csv'
+      output_corr_column = 'pupil_imputation_corrected'
+    }
+    
+    myvars_corr <- c("time", "pupil_toBeImputed", "error")
+    df_corr = df_in[myvars_corr]
+    colnames(df_corr) <- c("time", "pupil", "error") # standardize names
+    
+    myvars_clean <- c("time", "missForest", "error")
+    df_clean = df_in[myvars_clean]
+    colnames(df_clean) <- c("time", "pupil", "error") # standardize names
+    
+    # TODO! Rework the logic so that the imputation is actually shown in red color
+    # for example so you can inspect whether the imputation itself added anything weird?
+    
+    # No need to display the raw anymore for 2nd pass
+    df_raw = df_clean
+    df_clean = df_corr
+    
+    filename_recon = gsub(toBeReplaced, '', filename_in) # PLR1002_BR_video_outlier_free_corrected_imputation.csv
+    filename_recon = paste(filename_recon, '_CEEMD_signals', sep='')
+    # filename_recon = paste(filename_recon, '_recon_recon_CEEMD_signals.csv', sep='') # PLR1002_BR_video_outlier_free_corrected_recon_recon_CEEMD_signals.csv
+    
+    path_recon = file.path(path, '..', '..', 'recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep)
+    fullfile = file.path(path_recon, filename_recon, fsep = .Platform$file.sep)
+    exists = length(which(list.files(path_recon) == filename_recon)) > 0
+    
+    if (exists) {
       
-      if (grepl('missForest', filename_in, fixed=TRUE)) {
-        output_corr_column = 'missForest'
-        toBeReplaced = '_imputation_corrected_missForest'
-      } else {
-        toBeReplaced = '_imputation.csv'
-        output_corr_column = 'pupil_imputation_corrected'
-      }
+      df_recon_in = read.csv(file.path(path_recon, filename_recon, fsep = .Platform$file.sep))
       
-      myvars_corr <- c("time", "pupil", "error")
-      df_corr = df_in[myvars_corr]
-      colnames(df_corr) <- c("time", "pupil", "error") # standardize names
-      
-      myvars_clean <- c("time", "pupil_outlier_corrected", "error")
-      df_clean = df_in[myvars_clean]
-      colnames(df_clean) <- c("time", "pupil", "error") # standardize names
-      
-      # No need to display the raw anymore for 2nd pass
-      df_raw = df_clean
-      df_clean = df_corr
-      
-      filename_recon = gsub(toBeReplaced, '', filename_in) # PLR1002_BR_video_outlier_free_corrected_imputation.csv
-      filename_recon = paste(filename_recon, '_CEEMD_signals', sep='')
-      # filename_recon = paste(filename_recon, '_recon_recon_CEEMD_signals.csv', sep='') # PLR1002_BR_video_outlier_free_corrected_recon_recon_CEEMD_signals.csv
-      
-      path_recon = file.path(path, '..', '..', 'recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep)
-      fullfile = file.path(path_recon, filename_recon, fsep = .Platform$file.sep)
-      exists = length(which(list.files(path_recon) == filename_recon)) > 0
-      
-      if (exists) {
-        df_recon_in = read.csv(file.path(path_recon, filename_recon, fsep = .Platform$file.sep))
-        
-        # Now this contains the IMFs, so let's drop the first 4 IMFs to have a denoised version
-        # TODO! do the combining elsewhere and read the smooth version now
-        myvars_recon <- c("time", "pupil_recon", "error")
-        df_recon = df_clean
-        df_recon[['pupil']] = df_recon_in[['smooth']]
-        
-        
-        # this file does not have the EMD
-      } else {
-        df_recon = df_clean
-        warning('EMD Results not found for file = ', filename_in)
-      }
+      # Now this contains the IMFs, so let's drop the first 4 IMFs to have a denoised version
+      # TODO! do the combining elsewhere and read the smooth version now
+      myvars_recon <- c("time", "pupil_recon", "error")
+      df_recon = df_clean
+      df_recon[['pupil']] = df_recon_in[['smooth']]
       
       # pupil_recon = df_recon_in$pupil_recon
       
     } else {
       
-      cat('MODE: 2nd pass correction of outlier correction\n')
-      corrected_2ndPass = TRUE
+      corrected_2ndPass = FALSE
       myvars_corr <- c("time", "pupil_outlier_corrected", "error")
       df_corr = df_in[myvars_corr]
       colnames(df_corr) <- c("time", "pupil", "error") # standardize names
@@ -110,19 +114,22 @@ server <- function(input, output) {
       df_raw = df_clean
       df_clean = df_corr
       
-      # TODO!
-      # now manual correspondence of the reconstructed file
-      filename_recon = gsub('.csv', '', filename_in)
-      filename_recon = paste(filename_recon, '_recon.csv', sep='')
-      
-      path_recon = file.path(path, '..', '..', 'recon', fsep = .Platform$file.sep)
-      df_recon_in = read.csv(file.path(path_recon , filename_recon, fsep = .Platform$file.sep))
-      # pupil_recon = df_recon_in$pupil_recon
-      
       myvars_recon <- c("time", "pupil_recon", "error")
-      df_recon = df_recon_in[myvars_recon]
-      colnames(df_recon) <- c("time", "pupil", "error") # standardize names
-      # pupil_recon = df_recon_in$pupil_recon
+      df_recon = df_clean
+      
+      # # TODO!
+      # # now manual correspondence of the reconstructed file
+      # filename_recon = gsub('.csv', '', filename_in)
+      # filename_recon = paste(filename_recon, '_recon.csv', sep='')
+      # 
+      # path_recon = file.path(path, '..', '..', 'recon', fsep = .Platform$file.sep)
+      # df_recon_in = read.csv(file.path(path_recon , filename_recon, fsep = .Platform$file.sep))
+      # # pupil_recon = df_recon_in$pupil_recon
+      # 
+      # myvars_recon <- c("time", "pupil_recon", "error")
+      # df_recon = df_recon_in[myvars_recon]
+      # colnames(df_recon) <- c("time", "pupil", "error") # standardize names
+      # # pupil_recon = df_recon_in$pupil_recon
       
     }
   } else {

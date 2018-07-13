@@ -18,6 +18,8 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
     source(file.path(settings[['stat_path']], 'pre_process_wrapper_for_average_traces.R', fsep = .Platform$file.sep))
   
     source(file.path(settings[['stat_path']], 'density_and_ROC_plot.R', fsep = .Platform$file.sep))
+  
+    source(file.path(settings[['stat_path']], 'video_demo_of_groups.R', fsep = .Platform$file.sep))
     
   
   # Init PROCESS Parameters -----------------------------------------------------------------  
@@ -48,7 +50,7 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
 
     # If you want to use custom column to select the subject to use
       
-      parameters[['handpick_subjects']][['Flag']] = TRUE
+      parameters[['handpick_subjects']][['Flag']] = FALSE
       parameters[['handpick_subjects']][['Column']] = 'InterimGlaucomavsControl2'
       
     # The features of interest
@@ -81,7 +83,10 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       parameters[['stats']][['pairwise_tests']][['p_threshold']] = 0.05
       
       # ROC
-      parameters[['ROC']][['combine_pathologies_also']] = TRUE
+      parameters[['ROC']][['combine_pathologies_also']] = FALSE
+      
+      # Other flags
+      parameters[['flags']][['skip_age_match']] = FALSE
       
     # TODO! You could read all the parameter pairs from .txt files, and have one row
     # per comparison and simply then loop through the rows giving you all the desired 
@@ -91,13 +96,15 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       analysis_param = list()
       i = 1
       analysis_param[[i]] = parameters
+      analysis_param[[i]]$name = 'Glaucoma'
       
       # copy the same values to second entry
       i = i +1
       analysis_param[[i]] = parameters
+      analysis_param[[i]]$name = 'Diabetes'
       
       # and change the values need to be changed
-      analysis_param[[i]][['handpick_subjects']][['Flag']] = FALSE
+      analysis_param[[i]][['handpick_subjects']][['Flag']] = FALSE # not for DM/DR
       analysis_param[[i]][['match_reference']] = c('DM')
       analysis_param[[i]][['factors_keep']][[parameters[['main_factor']]]] = 
                                       c('Control', 'DM')
@@ -107,14 +114,14 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
     no_of_different_analyses = length(analysis_param)
     
     # Now go through all the analyses wanted
-    for (analys_ind in 1 : no_of_different_analyses) {
+    for (analys_ind in 1 : 1) { #no_of_different_analyses) {
     
       # Plot average traces
       master_indices_out = plot.average.traces(data_frame_feats, list_traces, subject_codes_traces, 
                                dataset_type, derived_feats_names,
                                analysis_param[[analys_ind]], settings)
       
-       # Show the feats then
+      # Show the feats then
       p2 = stats.point.features(data_frame_feats, list_traces, dataset_type,
                                 master_indices_out, derived_feats_names, plot_type = 'boxplot',
                                 parameters = analysis_param[[analys_ind]], settings)

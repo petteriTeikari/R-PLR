@@ -7,6 +7,8 @@ pre.process.wrapper.for.average.traces = function(data_frame_feats, list_traces,
   
   if (parameters[['handpick_subjects']][['Flag']]) {
     
+    warning('Handpicking the subjects now!')
+    
     # Create a list with the desired data
     out = select.subset.from.list(list_traces, subject_codes_traces, data_frame_feats, 
                                   parameters, settings, 'traces',
@@ -46,15 +48,26 @@ pre.process.wrapper.for.average.traces = function(data_frame_feats, list_traces,
     master_indices_out = out[[2]]
     grouping_vars_out = toupper(out[[3]])
     
-    age_matched_out = age.match.groups(list_out, master_indices_out, grouping_vars_out,
-                                       parameters[['main_factor']], parameters[['match_reference']], 
-                                       parameters[['matched_by']][['Age']], data_frame_feats)
+    if (!parameters[['flags']][['skip_age_match']]) {
     
-    list_agematched = age_matched_out[[1]]
-    master_indices_out = age_matched_out[[2]]
-    
-    # Now we might have duplicate column names due to case sensitivities in Master Data Sheet
-    grouping_vars_out = age_matched_out[[3]]
+      age_matched_out = age.match.groups(list_out, master_indices_out, grouping_vars_out,
+                                         parameters[['main_factor']], parameters[['match_reference']], 
+                                         parameters[['matched_by']][['Age']], data_frame_feats)
+      
+      list_agematched = age_matched_out[[1]]
+      master_indices_out = age_matched_out[[2]]
+      
+      # Now we might have duplicate column names due to case sensitivities in Master Data Sheet
+      grouping_vars_out = age_matched_out[[3]]
+      
+    } else {
+      
+      cat('\n')
+      warning(' Skipping age-matching now!')
+      cat('\n')
+      list_agematched = list_out
+      
+    }
     
   }
     

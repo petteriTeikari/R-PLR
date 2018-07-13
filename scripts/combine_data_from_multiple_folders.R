@@ -235,10 +235,23 @@ recheck.normalization = function(df_out, i, filecode) {
   
   problem = NA
   
-  if (abs(baseline_out) > 5) {
+  col_names = colnames(df_out)
+  vars_to_normalize = c('pupil_raw', 'pupil_blink_thresholded', 
+                        'pupil_outlierfree', 'pupil_outlier_corrected',
+                        'pupil_imputeTS_kalman_StructTS',
+                        'pupil_StructTS_iter', 'pupil_toBeImputed', 
+                        'missForest', 'denoised',
+                        'noiseNorm', 'noiseNonNorm',
+                        'base', 'loFreq', 'hiFreq')
   
-    cat('Baseline now = ', round(baseline_out, digits=2), '! Something wrong now! Renormalizing')
-    renormalized = renormalize.value(baseline_out, baseline_in, vector = df_out$pupil, ind = c(i1, i2))
+  to_normalize_ind = col_names %in% vars_to_normalize
+  col_names_to_normalize = col_names[to_normalize_ind]
+  
+  if (1 == 1) {
+  
+    # cat('Baseline now = ', round(baseline_out, digits=2), '! Something wrong now! Renormalizing')
+    
+    renormalized = renormalize.value(baseline_out, baseline_in, vector = df_out$pupil, i1 = i1, i2 = i2)
       df_out$pupil = renormalized[[1]]
       df_out$baseline = renormalized[[2]]
       df_out$baseline_median = df_out$baseline
@@ -251,11 +264,22 @@ recheck.normalization = function(df_out, i, filecode) {
       #                        global_baseline = FALSE,
       #                        indices = c(i1, i2))
     
-    cat(' \n')
-    baseline_out = median(df_out$pupil[i1:i2])
+    # cat(' \n')
+    baseline_out = median(df_out$pupil[i1:i2], na.rm = TRUE)
     problem = 1
-    cat('   ... After normalization we got the baseline to = ', round(baseline_out, digits=2), 
-        ' for subject', filecode, '\n')
+    # cat('   ... After normalization we got the baseline to = ', round(baseline_out, digits=2), 
+    #     ' for subject', filecode, '\n')
+    
+    
+    
+    for (c in 1 : length(col_names_to_normalize)) {
+      
+      renormalized = renormalize.value(baseline_out, baseline_in, 
+                                       vector = df_out[[col_names_to_normalize[c]]], 
+                                       i1 = i1, i2 = i2)
+      
+      df_out[[col_names_to_normalize[c]]] = renormalized[[1]]
+    }
     
   }
   
@@ -263,12 +287,12 @@ recheck.normalization = function(df_out, i, filecode) {
   
 }
 
-renormalize.value = function(baseline_out, baseline_in, vector, ind) {
+renormalize.value = function(baseline_out, baseline_in, vector, i1, i2) {
   
   vector_in_raw = vector*baseline_in/100 + baseline_in
   
-  baseline_again = median(vector_in_raw[i1:i2])
-  baseline_mean = mean(vector_in_raw[i1:i2])
+  baseline_again = median(vector_in_raw[i1:i2], na.rm = TRUE)
+  baseline_mean = mean(vector_in_raw[i1:i2], na.rm = TRUE)
   
   denominator = baseline_again
   nominator = baseline_again - vector_in_raw

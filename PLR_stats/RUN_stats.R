@@ -14,6 +14,7 @@
   library(dplyr)
   library(plyr)
 
+  library(pracma)
   # install.packages("car")
   library(car) # for Levene's test e.g.
 
@@ -107,7 +108,7 @@
                     'pupil_raw', 'pupil_blink_thresholded', 'pupil_outlierfree', 'pupil_outlier_corrected', 'missForest', 
                     'noiseNorm', 'noiseNonNorm', 'hiFreq', 'loFreq', 'base', 'denoised',
                     'oscillations', 'oscillations_denoised', 
-                    'oscillations_hiFreq', 'base_osc')
+                    'oscillations_hiFreq', 'base_osc', 'baseline')
   
   out_import = import.resampledReconstructions(data_path_traces, pattern_to_find, 
                                                dataset_type, included_vars, settings)

@@ -188,6 +188,7 @@ plot_file.visualization = function(data_to_plot, plot_param, path_input) {
 
 plot.trace.visualization = function(data, x_col, y_cols, y_col2 = NA,
                                     title_str, subtitle_str = NA,
+                                    SD = NA,
                                     xlab_str, ylab_str, 
                                     ylims = NA,
                                     xlims = NA,
@@ -236,16 +237,22 @@ plot.trace.visualization = function(data, x_col, y_cols, y_col2 = NA,
   
   p = ggplot(df_melt) +
         geom_line(aes(Time, Pupil, colour = Block)) +
-        labs(title = title_str, x = xlab_str, y = ylab_str) +
+        labs(title = title_str, subtitle = subtitle_str, x = xlab_str, y = ylab_str)
         # https://ggplot2.tidyverse.org/reference/theme.html
-  
+
+  if (!is.na(SD[1])) {
+    p = p + geom_ribbon(aes(Time, ymin=Pupil-SD, ymax=Pupil+SD), fill = "grey70", alpha = .4)
+    
+  }
+    
+  p = p + theme(legend.position="none")
   if (identical(plot_type, 'PLR')) {  
     theme(legend.position = "top", legend.text.align = 0, 
           legend.text=element_text(size=rel(0.65))) # not the most adaptive now, TODO!
   } else if (identical(plot_type, 'PLR_video')) {  
-    theme(legend.position="none")
+    p = p + theme(legend.position="none")
   } else {
-    theme(legend.position="none")
+    p = p + theme(legend.position="none")
   }
   
   if (identical(plot_type, 'mf_spectrum')) {
@@ -263,6 +270,9 @@ plot.trace.visualization = function(data, x_col, y_cols, y_col2 = NA,
   } else {
     p = p + scale_x_continuous(limits = xlims)
   }
+  
+  theme(text = element_text(size=10))
+  
   
   # TODO! Add light periods
   # plot_param[['light_on']]

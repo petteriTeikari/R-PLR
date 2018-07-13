@@ -1,6 +1,7 @@
 clean.plr <- function(data_frame_in, source_path,  
                       blink_hard_threshold, spline_iter_no, 
-                      sigma_multip, debug_clean_on) {
+                      sigma_multip, debug_clean_on,
+                      changepoint = FALSE) {
 
   # Initialization ----------------------------------------------------------
   
@@ -43,6 +44,16 @@ clean.plr <- function(data_frame_in, source_path,
       pupil_error_nonnan = pupil_error[!indices_hard_thr]
       time_point_list = accumulate.nans(df_hard_thr, indices_hard_thr, verbose_acc)
       
+    # Change point detection
+    if (changepoint) {
+      df_cpts = changepoint.detection(data_frame_in)
+      indices = is.na(df_cpts$pupil)
+      df_hard_thr_nonnan = remove.na(df_cpts,indices)
+      safe_vector_nonnan = safe_vector[!indices]
+      pupil_error_nonnan = pupil_error[!indices]
+      time_point_list = accumulate.nans(df_hard_thr_nonnan, indices, verbose_acc)
+    }
+    
     # Cubic spline smoothing with cross-validated parameters
     # Note! Spline cannot accept any NA values
     spline_out = spline.filter(data_frame = df_hard_thr_nonnan, 
@@ -142,3 +153,31 @@ make.vector.original.length = function(error_time, error, time_out) {
 
 
 
+changepoint.detection = function(df) {
+  
+  plot(df$time, df$pupil, type='l')
+  
+  options(warn = -1)
+  ts = convert.vectors.to.time.series.object(t = df$time, y = df$pupil)
+  options(warn = 0)
+  mvalue = cpt.mean(ts, method="PELT") #mean changepoints using PELT  
+  
+  cpts = attributes(mvalue)$cpts
+  change_times = df$time[cpts]
+  
+  for (i in seq(1, length(cpts), 2)) {
+    
+    if (!is.na(cpts[i]) & !is.na(cpts[i+1])) {
+        ind1 = cpts[i]
+        ind2 = cpts[i+1]
+        # cat(ind1, ' ', ind2, '\n')
+        df$pupil[ind1:ind2] = NA
+    }
+    
+  }
+  
+  points(df$time, df$pupil, col='red', pch = 12, cex = .3)
+  
+  return(df)
+  
+}

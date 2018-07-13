@@ -31,7 +31,7 @@ clean.and.reconstruct.PLR = function() {
                        parameters = param[['artifacts']],
                        RPLR_paths = paths[['RPLR']],
                        process_only_unprocessed = TRUE, # no need to re-process all 400 files
-                       path_check_for_done = paths[['data_out']][['Final']]) # paths[['data_out']][['Final']]) 
+                       path_check_for_done = paths[['data_out']][['Final']])
       
   # Resample to same length
   batch.PLR.resample(data_path = paths[['data_in']][['resampling_corr']], 
@@ -52,7 +52,7 @@ clean.and.reconstruct.PLR = function() {
                             process_only_unprocessed = TRUE, # no need to re-process all 400 files
                             path_check_for_done = paths[['data_out']][['Final']], 
                             pupil_col = 'pupil',
-                            combine_with_database = TRUE,
+                            combine_with_database = FALSE,
                             database_path = paths[['data_out']][['Final']])
   
   # AFTER MANUAL INSPECTION
@@ -98,13 +98,9 @@ clean.and.reconstruct.PLR = function() {
   #                         path_check_for_done = paths[['data_out']][['Final']],
   #                         pupil_col = 'hiFreq')
   
-  
 
-  batch.recompose.EMD.subdecompositions()
+  # batch.recompose.EMD.subdecompositions()
 
-  
-  
-  
   # Now we have the results a bit scattered around and we cant to combine them
   paths[['RPLR']][['scripts']]
   combine.data.from.multiple.folders(path_main = paths[['data_out']][['base']], 
@@ -180,7 +176,6 @@ init.paths.and.functions = function(paths) {
   source(file.path(paths[['recon']], 'batch_EMD_decomposition.R', fsep = .Platform$file.sep))
   source(file.path(paths[['recon']], 'batch_recompose_EMD_subdecompositions.R', fsep = .Platform$file.sep))
   source(file.path(paths[['RPLR']][['scripts']], 'combine_data_from_multiple_folders.R', fsep = .Platform$file.sep))
-  
   
   return(paths)
   
