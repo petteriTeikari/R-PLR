@@ -1,0 +1,28 @@
+# Resize e.g. to 50%
+# https://www.imagemagick.org/script/mogrify.php
+mogrify -resize 50% *.png
+
+# Sequential rename
+# https://stackoverflow.com/questions/3211595/renaming-files-in-a-folder-to-sequential-numbers
+find . -name '*.png' | gawk 'BEGIN{ a=1 }{ printf "mv \"%s\" %04d.png\n", $0, a++ }' | bash
+
+# rename  based on date
+n=0; ls -tr | while read i; do n=$((n+1)); mv -- "$i" "$(printf '%03d' "$n")"; done
+
+# with ffmpeg
+# https://unix.stackexchange.com/questions/68770/converting-png-frames-to-video-at-1-fps
+# https://trac.ffmpeg.org/wiki/Encode/H.264
+ffmpeg -r 1 -i %3d.png -c:v libx264 -crf 15 out.mp4
+
+# for the demo for the processing
+
+# crop away the page 1 of 1 (70px)
+# http://imagemagick.org/discourse-server/viewtopic.php?t=18658
+mogrify -format png -gravity north -chop 0x70 *.png
+
+
+# pad
+http://www.imagemagick.org/Usage/thumbnails/#pad
+
+# finally encode
+ffmpeg -r 25 -i %4d.png -c:v libx264 -crf 15 -tune animation demo_control_vs_glaucoma.mp4
