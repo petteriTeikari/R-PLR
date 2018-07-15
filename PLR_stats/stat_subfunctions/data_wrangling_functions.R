@@ -203,95 +203,154 @@ age.match.groups = function(list_out, master_indices_out, grouping_vars_out,
                                  match_threshold = 6, 
                                  data_frame_feats) {
   
-  cat('\n')
-  cat('Age-matching the "main_factor" (', main_factor, 
-      ') to the ages of "match_reference" (', match_reference, ')\n')
-  
-  ages_left_vector = data_frame_feats[['Age']][master_indices_out]
-  
-  # find indices corresponding to the match_reference
-  ref_indices = grouping_vars_out %in% match_reference
-  ref_ages = ages_left_vector[ref_indices]
-  ref_NA_ages = is.na(ref_ages)
-  ref_NA_count = sum(ref_NA_ages)
-  ref_mean = round(mean(ref_ages, na.rm = TRUE), digits = 2)
-  ref_SD = round(sd(ref_ages, na.rm = TRUE), digits = 2)
 
-  cat(paste0('  Reference group had ', length(ref_ages), 
-             ' subjects (mean +/- SD): ', ref_mean, ' +/- ', ref_SD, ' years\n'))
+  # THE INIT (Boring Part) --------------------------------------------------
+
+    cat('\n')
+    cat('Age-matching the "main_factor" (', main_factor, 
+        ') to the ages of "match_reference" (', match_reference, ')\n')
+    
+    ages_left_vector = data_frame_feats[['Age']][master_indices_out]
+    
+    # find indices corresponding to the match_reference
+    ref_indices = grouping_vars_out %in% match_reference
+    ref_ages = ages_left_vector[ref_indices]
+    ref_NA_ages = is.na(ref_ages)
+    ref_NA_count = sum(ref_NA_ages)
+    ref_mean = round(mean(ref_ages, na.rm = TRUE), digits = 2)
+    ref_SD = round(sd(ref_ages, na.rm = TRUE), digits = 2)
   
-  if (ref_NA_count > 0) {
-    cat('    .. The following', ref_NA_count, 'subjects had no age entered in Master Data sheet:\n')
-    cat('    .. .  ', data_frame_feats$`Subject code`[which(ref_NA_ages)], '\n')
-  }
-  
-  # Indices for the remaining subjects
-  control_indices = !ref_indices
-  control_ages = ages_left_vector[control_indices]
-  control_NA_ages = is.na(control_ages)
-  control_NA_count = sum(control_NA_ages)
-  control_mean = round(mean(control_ages, na.rm = TRUE), digits = 2)
-  control_SD = round(sd(control_ages, na.rm = TRUE), digits = 2)
-  
-  cat(paste0('   CONTROL group had ', length(control_ages), 
-             ' subjects (mean +/- SD): ', control_mean, ' +/- ', control_SD, ' years\n'))
-  
-  if (ref_NA_count > 0) {
-    cat('    .. The following', control_NA_count, 'subjects had no age entered in Master Data sheet:\n')
-    cat('    .. .  ', data_frame_feats$`Subject code`[which(control_NA_ages)], '\n')
-  }
-  
-  # TODO t-test or something
-  limit_lo = round(ref_mean - match_threshold)
-  limit_hi = round(ref_mean + match_threshold)
-  
-  indices_over_lo = ages_left_vector >= limit_lo
-  no_over_lo = sum(indices_over_lo == TRUE)
-  indices_under_hi = ages_left_vector <= limit_hi
-  no_under_hi = sum(indices_under_hi == TRUE)
-  
-  # these are all ages within the defined range from both reference and main factor
-  indices_in_range =  indices_over_lo & indices_under_hi
-  no_in_range = sum(indices_in_range == TRUE)
-  inrange_all_ages = ages_left_vector[indices_in_range]
-  groupvars_left = grouping_vars_out[indices_in_range]
-  
-  # Now we get indices for main factor (e.g. CONTROL) group
-  inrange_and_inMainFactor_group = !ref_indices & indices_in_range
-  no_inMainFactor = sum(inrange_and_inMainFactor_group == TRUE)
-  groupvars_left_now = grouping_vars_out[inrange_and_inMainFactor_group]
-  
-  ages_CONTROL_vector = ages_left_vector[inrange_and_inMainFactor_group]
-  ages_CONTROL_mean = round(mean(ages_CONTROL_vector, na.rm = TRUE), digits = 2)
-  ages_CONTROL_SD = round(sd(ages_CONTROL_vector, na.rm = TRUE), digits = 2)
-  
-  cat(paste0('    In the end we kept ', length(groupvars_left_now), 
-             ' subjects from CONTROL (mean +/- SD): ', 
-             ages_CONTROL_mean, ' +/- ', ages_CONTROL_SD, ' years\n'))
-  
-  # The indices in the end to keep
-  to_keep_finally = ref_indices | inrange_and_inMainFactor_group
-  
-  list_names_in = names(list_out)
-  list_agematched = list()
-  for (i in 1 : length(list_names_in)) {
-    list_agematched[[list_names_in[i]]] = list_out[[list_names_in[i]]][,to_keep_finally]
-  }
-  
-  control_subjects_excluded = dim(list_out[[list_names_in[i]]])[2] -
-                              dim(list_agematched[[list_names_in[i]]])[2]
-                              
-  cat('to SUMMARIZE: ', control_subjects_excluded, 'Control subjects were excluded\n')
-  # cat('  ', ages_left_vector[!to_keep_finally])
-  # cat('from following groups (ALL SHOULD BE CONTROL):\n', grouping_vars_out[!to_keep_finally], '\n')
-  
-  # grouping variables out
-  grouping_vars_out = grouping_vars_out[to_keep_finally]
-  
-  # correspondence between the master data sheet and the returned list
-  master_indices_out = master_indices_out[to_keep_finally]
-  
-  return(list(list_agematched, master_indices_out, grouping_vars_out))
+    cat(paste0('  Reference group had ', length(ref_ages), 
+               ' subjects (mean +/- SD): ', ref_mean, ' +/- ', ref_SD, ' years\n'))
+    
+    if (ref_NA_count > 0) {
+      cat('    .. The following', ref_NA_count, 'subjects had no age entered in Master Data sheet:\n')
+      cat('    .. .  ', data_frame_feats$`Subject code`[which(ref_NA_ages)], '\n')
+    }
+    
+    # Indices for the remaining subjects
+    control_indices = !ref_indices
+    control_ages = ages_left_vector[control_indices]
+    control_NA_ages = is.na(control_ages)
+    control_NA_count = sum(control_NA_ages)
+    control_mean = round(mean(control_ages, na.rm = TRUE), digits = 2)
+    control_SD = round(sd(control_ages, na.rm = TRUE), digits = 2)
+    
+    cat(paste0('   CONTROL group had ', length(control_ages), 
+               ' subjects (mean +/- SD): ', control_mean, ' +/- ', control_SD, ' years\n'))
+    
+    if (ref_NA_count > 0) {
+      cat('    .. The following', control_NA_count, 'subjects had no age entered in Master Data sheet:\n')
+      cat('    .. .  ', data_frame_feats$`Subject code`[which(control_NA_ages)], '\n')
+    }
+    
+    # Merge now the groups into a data frame
+    # Combine POAG/NTG -> Glaucoma
+    if (combine_pathology) {
+      factors_in = combine.pathologies(factors_in = grouping_vars_out, 
+                                       factors_kept = parameters[['factors_keep']][[parameters[['main_factor']]]])
+    }
+    
+    labels_ref = factors_in[ref_indices]
+    labels_control = factors_in[control_indices]
+    
+    sex_vector = data_frame_feats$Gender[master_indices_out]
+    sex_vector[sex_vector == 1] = 'Male'
+    sex_vector[sex_vector == 2] = 'Female'
+    sex_ref = sex_vector[ref_indices]
+    sex_control = sex_vector[control_indices]
+    
+    race_vector = data_frame_feats$Race[master_indices_out]
+    race_ref = race_vector[ref_indices]
+    race_control = race_vector[control_indices]
+    
+    df_ref = data.frame(Age = ref_ages, Pathology = labels_ref, Sex = sex_ref, Race = race_ref)
+    df_control = data.frame(Age = control_ages, Pathology = labels_control, Sex = sex_control, Race = race_control)
+    df_ages = rbind(df_ref, df_control)
+    
+    cat('Summary before any matching:\n')
+    cat('----------------------------\n')
+    summary(df_ages)
+
+  # PROPENSITY SCORE --------------------------------------------------------
+
+    # https://www.r-bloggers.com/how-to-use-r-for-matching-samples-propensity-score/
+    # https://pareonline.net/getvn.asp?v=19&n=18
+    # https://cran.r-project.org/web/packages/MatchIt/vignettes/matchit.pdf
+    # match.it <- matchit(Pathology ~ Age + Sex, data = df_ages, method = "optimal", ratio = 2) (getting an error?)
+    
+    # propensity score matching (PSM)
+    # https://stats.stackexchange.com/questions/204561/matched-data-paired-t-test-vs-indpendent
+    
+      # "Autsin (2009) argues that you should account for the paired nature of the matched data. 
+      # Others disagree. It is still an area of debate. The controversy is reported in Thoemmes & Kim (2011)."
+      # http://dx.doi.org/10.2202/1557-4679.1146
+      # http://dx.doi.org/10.1080/00273171.2011.540475
+      
+    # https://dx.doi.org/10.1016%2Fj.bbmt.2015.12.005 :
+    
+      # Our investigation shows that Cox regression model applied to the entire cohort is often a more powerful tool 
+      # in detecting treatment effect as compared to a matched study. 
+        
+    # Demonstration Propensity Scores
+    # How to conduct propensity scores in R | 
+    # Steps that we follow when conducting propensity scores analysis
+    # https://portfolio.du.edu/downloadItem/316002
+    
+    # TODO t-test or something
+    limit_lo = round(ref_mean - match_threshold)
+    limit_hi = round(ref_mean + match_threshold)
+    
+    indices_over_lo = ages_left_vector >= limit_lo
+    no_over_lo = sum(indices_over_lo == TRUE)
+    indices_under_hi = ages_left_vector <= limit_hi
+    no_under_hi = sum(indices_under_hi == TRUE)
+    
+    # these are all ages within the defined range from both reference and main factor
+    indices_in_range =  indices_over_lo & indices_under_hi
+    no_in_range = sum(indices_in_range == TRUE)
+    inrange_all_ages = ages_left_vector[indices_in_range]
+    groupvars_left = grouping_vars_out[indices_in_range]
+    
+
+  # SELECT THE MATCHED SUBJECTS ---------------------------------------------
+
+    # Now we get indices for main factor (e.g. CONTROL) group
+    inrange_and_inMainFactor_group = !ref_indices & indices_in_range
+    no_inMainFactor = sum(inrange_and_inMainFactor_group == TRUE)
+    groupvars_left_now = grouping_vars_out[inrange_and_inMainFactor_group]
+    
+    ages_CONTROL_vector = ages_left_vector[inrange_and_inMainFactor_group]
+    ages_CONTROL_mean = round(mean(ages_CONTROL_vector, na.rm = TRUE), digits = 2)
+    ages_CONTROL_SD = round(sd(ages_CONTROL_vector, na.rm = TRUE), digits = 2)
+    
+    cat(paste0('    In the end we kept ', length(groupvars_left_now), 
+               ' subjects from CONTROL (mean +/- SD): ', 
+               ages_CONTROL_mean, ' +/- ', ages_CONTROL_SD, ' years\n'))
+    
+    # The indices in the end to keep
+    to_keep_finally = ref_indices | inrange_and_inMainFactor_group
+    
+    list_names_in = names(list_out)
+    list_agematched = list()
+    for (i in 1 : length(list_names_in)) {
+      list_agematched[[list_names_in[i]]] = list_out[[list_names_in[i]]][,to_keep_finally]
+    }
+    
+    control_subjects_excluded = dim(list_out[[list_names_in[i]]])[2] -
+                                dim(list_agematched[[list_names_in[i]]])[2]
+                                
+    cat('to SUMMARIZE: ', control_subjects_excluded, 'Control subjects were excluded\n')
+    # cat('  ', ages_left_vector[!to_keep_finally])
+    # cat('from following groups (ALL SHOULD BE CONTROL):\n', grouping_vars_out[!to_keep_finally], '\n')
+    
+    # grouping variables out
+    grouping_vars_out = grouping_vars_out[to_keep_finally]
+    
+    # correspondence between the master data sheet and the returned list
+    master_indices_out = master_indices_out[to_keep_finally]
+    
+    return(list(list_agematched, master_indices_out, grouping_vars_out))
   
   
 }
