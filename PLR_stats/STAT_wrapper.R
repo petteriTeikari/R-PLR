@@ -20,6 +20,7 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
     source(file.path(settings[['stat_path']], 'density_and_ROC_plot.R', fsep = .Platform$file.sep))
   
     source(file.path(settings[['stat_path']], 'video_demo_of_groups.R', fsep = .Platform$file.sep))
+    source(file.path(settings[['stat_path']], 'save_matrices_for_deep_learning.R', fsep = .Platform$file.sep))
     
   
   # Init PROCESS Parameters -----------------------------------------------------------------  

@@ -33,7 +33,6 @@ resample.reconstructed.PLR = function(data_path_out, data_resampled_path_out, da
   
   # the trimming indices from 
   
-  
   for (i in 1:length(vars_to_resample)) {
     
     var_name = vars_to_resample[i]

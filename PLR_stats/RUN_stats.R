@@ -28,10 +28,14 @@
   # install.packages("readxl") # CRAN version
   library(readxl)
 
+  # install.packages("MatchIt")
+  # install.packages("optmatch")
+  library(MatchIt) # for age-matching
+  library(optmatch) # for age-matching
+
   # for converting list into a data frame
   # https://www.rdocumentation.org/packages/qdapTools/versions/1.3.3/topics/list2df
   # if (!require(qdap)) install.packages("qdap")
-
 
   # Define Paths
   script.dir <- dirname(sys.frame(1)$ofile) # https://stackoverflow.com/a/15373917
@@ -58,7 +62,12 @@
     dir.create(data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
   
-  
+  # define the output for results ('..', goes one folder back)
+  data_deeplearning_path_out = file.path(data_path_feats, '..', 'for_deepLearning', fsep = .Platform$file.sep)
+  if (dir.exists(data_path_out) == FALSE) {
+    cat('Creating the directory for STATS output')
+    dir.create(data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+  }
   
   # SOURCE
   source(file.path(script.dir, 'STAT_wrapper.R', fsep = .Platform$file.sep))
@@ -88,6 +97,7 @@
   settings[['script_dir']] = script.dir
   settings[['stat_path']] = stat_path
   settings[['data_path_out']] = data_path_out
+  settings[['data_deep_path_out']] = data_deeplearning_path_out
   settings[['no_of_cores_to_use']] = detectCores() 
   
 # Import the files --------------------------------------------------------------

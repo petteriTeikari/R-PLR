@@ -291,6 +291,11 @@ convert.vectors.to.time.series.object = function(t, y, filecodes, error_frac = N
   startTime = timeVec - t[1] # make first time point zero
   begin_string = paste(baseline_time, sep='')
   totalTime_sec = tail(timeVec,1)
+  
+  cat(startTime, '\n')
+  cat(begin_string, '\n')
+  cat(totalTime_sec, '\n')
+  
   if (totalTime_sec > 60) {
     warning('Implement minute addition later')
   }

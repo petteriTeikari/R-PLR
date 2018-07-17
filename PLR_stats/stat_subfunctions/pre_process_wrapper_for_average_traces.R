@@ -1,5 +1,5 @@
 pre.process.wrapper.for.average.traces = function(data_frame_feats, list_traces, subject_codes_traces,
-                                                  parameters, settings) {
+                                                  parameters, settings, save_matrices_for_deep = TRUE) {
   
   # if you select "time_onsetZero" / "pupil_raw" / "error fractional" these are mapped to
   # these standardized names to make further programming easier
@@ -51,8 +51,10 @@ pre.process.wrapper.for.average.traces = function(data_frame_feats, list_traces,
     if (!parameters[['flags']][['skip_age_match']]) {
     
       age_matched_out = age.match.groups(list_out, master_indices_out, grouping_vars_out,
-                                         parameters[['main_factor']], parameters[['match_reference']], 
-                                         parameters[['matched_by']][['Age']], data_frame_feats)
+                                         main_factor = parameters[['main_factor']], 
+                                         match_reference = parameters[['match_reference']], 
+                                         match_threshold = parameters[['matched_by']][['Age']], 
+                                         data_frame_feats)
       
       list_agematched = age_matched_out[[1]]
       master_indices_out = age_matched_out[[2]]
@@ -84,6 +86,12 @@ pre.process.wrapper.for.average.traces = function(data_frame_feats, list_traces,
   # Make dataframe from list
   # stats_df_out = stats.df.from.list(vector_stats)
   stats_df_out = long.df.stats.from.list(vector_stats)
+  
+  if (save_matrices_for_deep) {
+    save.matrices.for.deep.learning(data_frame_feats, list_traces, subject_codes_traces,
+                                    list_agematched, master_indices_out, grouping_vars_out,
+                                    parameters)
+  }
   
   return(list(stats_df_out, scalar_stats, master_indices_out))
   

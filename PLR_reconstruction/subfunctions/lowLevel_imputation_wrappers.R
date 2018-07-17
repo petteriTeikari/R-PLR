@@ -114,9 +114,9 @@ debug.imputation.ts = function(t_t, y_ts, y_na_t, na_found_t) {
 impute.with.MissForest = function(vars_as_matrices, pupil_col = 'pupil_toBeImputed') {
   
   library(missForest)
-  library(doParallel)  
+  # library(doParallel)  
   
-  registerDoParallel(cores=4)  
+  # registerDoParallel(cores=2)  
   getDoParWorkers()
   
   # a data matrix with missing values. 

@@ -11,10 +11,10 @@ server <- function(input, output) {
   # apt-get install libcairo2-dev libgtk2.0-dev xvfb xauth xfonts-base libxt-dev
 
   mode = 'outlier'
-  mode = 'imputation'
+  # mode = 'imputation'
   
   if (identical(mode, 'outlier')) {
-    path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/outlier_free'
+    path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/SERI2017'
     path_out = file.path(path, '..', 'outlier_free_corrected', fsep = .Platform$file.sep) 
   } else if (identical(mode, 'imputation')) {
     path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/imputation_final/'

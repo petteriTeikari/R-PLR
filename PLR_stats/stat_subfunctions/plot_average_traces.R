@@ -4,7 +4,7 @@ plot.average.traces = function(data_frame_feats, list_traces, subject_codes_trac
   
   # Pre-process, i.e. wrangle the data
   return_list = pre.process.wrapper.for.average.traces(data_frame_feats, list_traces, subject_codes_traces,
-                                         parameters, settings)
+                                         parameters, settings, save_matrices_for_deep = TRUE)
     stats_df_out = return_list[[1]]
     scalar_stats = return_list[[2]]
     master_indices_out = return_list[[3]]

@@ -42,7 +42,27 @@ decomp.EMD.per.subject = function(t, y, filecode, method_name, param_decomp, deb
   
 }
 
-
+loess.decomposition = function(t, y, span1 = 0.1, span2 = 0.3) {
+  
+  # first with 2nd degree LOESS, to get the high frequency
+  loess_model = loess(y~t, span = span1, degree = 2)
+  fit = loess_model$fitted
+  hiFreq = y - fit # residual
+  
+  # then with 1st degree LOWESS, to get the low frequency
+  loess_model = loess(fit~t, span = span2, degree = 1)
+  base = loess_model$fitted
+  loFreq = y - base # residual
+  
+  # plot(t,y,type='l')
+  # plot(t,fit,type='l')
+  # plot(t,base,type='l')
+  # plot(t,loFreq,type='l')
+  # plot(t,hiFreq,type='l')  
+  
+  return(list(base, loFreq, hiFreq))
+  
+}
 
                                   
 

@@ -1,5 +1,6 @@
-create.PLR.dataset.matrix = function(data_path_out, data_resampled_path_out, data_trimmed_path_out, config_path,
-                                     filename_path, fps, time_lims, time_lims_in, exclusion_boolean, time_new, hard_limits,
+create.PLR.dataset.matrix = function(data_path_out = NA, data_resampled_path_out = NA, data_trimmed_path_out = NA, 
+                                     config_path, filename_path, 
+                                     fps, time_lims, time_lims_in, exclusion_boolean, time_new, hard_limits,
                                      combine_mode = 're_define_time', useAdaptive = FALSE, jitter = FALSE, 
                                      normalize = TRUE, 
                                      value_operator = 'median', normalize_method = 'hybrid') {

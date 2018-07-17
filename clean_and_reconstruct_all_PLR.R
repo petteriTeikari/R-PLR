@@ -23,7 +23,7 @@ clean.and.reconstruct.PLR = function() {
                    parameters = param[['video']],
                    RPLR_paths = paths[['RPLR']],
                    process_only_unprocessed = TRUE, # no need to re-process all 400 files
-                   path_check_for_done = paths[['data_out']][['Final']])
+                   path_check_for_done = paths[['data_out']][['reconstructed']])
   
   # Remove the artifacts
   batch.PLR.artifacts(data_path = paths[['data_in']][['artifacts']], 
@@ -31,7 +31,7 @@ clean.and.reconstruct.PLR = function() {
                        parameters = param[['artifacts']],
                        RPLR_paths = paths[['RPLR']],
                        process_only_unprocessed = TRUE, # no need to re-process all 400 files
-                       path_check_for_done = paths[['data_out']][['Final']])
+                       path_check_for_done = paths[['data_out']][['reconstructed']])
       
   # Resample to same length
   batch.PLR.resample(data_path = paths[['data_in']][['resampling_corr']], 
@@ -40,7 +40,7 @@ clean.and.reconstruct.PLR = function() {
                       RPLR_paths = paths[['RPLR']],
                       masterExcel = paths[['data_in']][['excelMasterPath']],
                       process_only_unprocessed = TRUE, # no need to re-process all 400 files
-                      path_check_for_done = paths[['data_out']][['Final']],
+                      path_check_for_done = paths[['data_out']][['reconstructed']],
                       data_path_alternative = paths[['data_in']][['resampling']]) 
   
   # Impute the missing values
@@ -50,23 +50,24 @@ clean.and.reconstruct.PLR = function() {
                             RPLR_paths = paths[['RPLR']],
                             masterExcel = paths[['data_in']][['excelMasterPath']],
                             process_only_unprocessed = TRUE, # no need to re-process all 400 files
-                            path_check_for_done = paths[['data_out']][['Final']], 
+                            path_check_for_done = paths[['data_out']][['reconstructed']], 
                             pupil_col = 'pupil',
                             combine_with_database = FALSE,
-                            database_path = paths[['data_out']][['Final']])
+                            database_path = paths[['data_out']][['reconstructed']])
   
   # AFTER MANUAL INSPECTION
   # Iterate this, with changed input folder
+  # TODO! Check the normalizations at this point as there seem to be some glitches!
   batch.AnalyzeAndReImpute(data_path = paths[['data_in']][['imputation_rerun']], 
                            RPLR_recon_path = paths[['recon']],
                            parameters = param[['recon']],
                            RPLR_paths = paths[['RPLR']],
                            masterExcel = paths[['data_in']][['excelMasterPath']],
                            process_only_unprocessed = TRUE, # no need to re-process all 400 files
-                           path_check_for_done = paths[['data_out']][['Final']], 
+                           path_check_for_done = paths[['data_out']][['reconstructed']], 
                            pupil_col = 'pupil',
                            combine_with_database = FALSE,
-                           database_path = paths[['data_out']][['Final']],
+                           database_path = paths[['data_out']][['reconstructed']],
                            iterate_imputation = TRUE)
   
   # Run Empirical Mode Decomposition for denoising
@@ -76,33 +77,11 @@ clean.and.reconstruct.PLR = function() {
                           RPLR_paths = paths[['RPLR']],
                           masterExcel = paths[['data_in']][['excelMasterPath']],
                           process_only_unprocessed = TRUE,
-                          path_check_for_done = paths[['data_out']][['Final']],
+                          path_check_for_done = paths[['data_out']][['reconstructed']],
                           pupil_col = 'pupil')
   
-  # # Run Empirical Mode Decomposition for denoising
-  # batch.EMD.decomposition(data_path = paths[['data_out']][['EMD_fusion']], 
-  #                         RPLR_recon_path = paths[['recon']],
-  #                         parameters = param[['recon']],
-  #                         RPLR_paths = paths[['RPLR']],
-  #                         masterExcel = paths[['data_in']][['excelMasterPath']],
-  #                         process_only_unprocessed = FALSE,
-  #                         path_check_for_done = paths[['data_out']][['Final']],
-  #                         pupil_col = 'loFreq')
-  # 
-  # batch.EMD.decomposition(data_path = paths[['data_out']][['EMD_fusion']], 
-  #                         RPLR_recon_path = paths[['recon']],
-  #                         parameters = param[['recon']],
-  #                         RPLR_paths = paths[['RPLR']],
-  #                         masterExcel = paths[['data_in']][['excelMasterPath']],
-  #                         process_only_unprocessed = FALSE,
-  #                         path_check_for_done = paths[['data_out']][['Final']],
-  #                         pupil_col = 'hiFreq')
-  
-
-  # batch.recompose.EMD.subdecompositions()
-
   # Now we have the results a bit scattered around and we cant to combine them
-  paths[['RPLR']][['scripts']]
+  # NOTE! Re-normalizing all the different pupil size columns inside of this
   combine.data.from.multiple.folders(path_main = paths[['data_out']][['base']], 
                                       RPLR_scripts_path = paths[['RPLR']][['scripts']],
                                       subfolder_paths = c('imputation_final',
@@ -114,8 +93,18 @@ clean.and.reconstruct.PLR = function() {
                                                   # '*.csv',
                                                   '*.csv'))
   
-  # Compute 1st and 2nd derivatives (i.e. velocity and acceleration) from 
-  # the EMD denoised pupil signals
+  # Do some semi-intelligent decompositions for machine learning data augmentation purposes
+  # Computes as well 1st and 2nd derivatives (i.e. velocity and acceleration) from the smoothed PLRs
+  batch.data.decompose.for.augmentation(data_path = paths[['data_out']][['reconstructed']], 
+                                        data_path_out = paths[['data_out']][['FinalOUT']],
+                                        RPLR_recon_path = paths[['recon']],
+                                        parameters = param[['decomp_augm']],
+                                        RPLR_paths = paths[['RPLR']],
+                                        masterExcel = paths[['data_in']][['excelMasterPath']],
+                                        process_only_unprocessed = TRUE,
+                                        path_check_for_done = paths[['data_out']][['FinalOUT']],
+                                        pupil_col = 'denoised')
+  
   
 }
 
@@ -136,7 +125,8 @@ init.paths.and.functions = function(paths) {
   paths[['data_out']][['EMD_fusion']] = file.path(paths[['data_out']][['EMD']], 'IMF_fusion') 
   paths[['data_out']][['EMD_recomposed']] = file.path(paths[['data_out']][['base']], 'recon_EMD_subcomp_fusion') 
   paths[['data_out']][['reconstruction']] = file.path(paths[['data_out']][['base']], 'recon')
-  paths[['data_out']][['Final']] = file.path(paths[['data_out']][['base']], 'reconstructed') 
+  paths[['data_out']][['reconstructed']] = file.path(paths[['data_out']][['base']], 'reconstructed') 
+  paths[['data_out']][['FinalOUT']] = file.path(paths[['data_out']][['base']], 'FinalOUT') 
   
   # inputs from these outputs
   paths[['data_in']][['video']] = paths[['data_in']][['base']]
@@ -177,6 +167,11 @@ init.paths.and.functions = function(paths) {
   source(file.path(paths[['recon']], 'batch_recompose_EMD_subdecompositions.R', fsep = .Platform$file.sep))
   source(file.path(paths[['RPLR']][['scripts']], 'combine_data_from_multiple_folders.R', fsep = .Platform$file.sep))
   
+  source(file.path(paths[['RPLR']][['IO']], 'compute_PLR_derivatives.R', fsep = .Platform$file.sep))
+  
+  source(file.path(paths[['recon']], 'batch_data_decompose_for_augmentation.R', fsep = .Platform$file.sep))
+  source(file.path(paths[['recon']], 'subfunctions', 'file_decomp_augmentation_wrapper.R', fsep = .Platform$file.sep))
+  
   return(paths)
   
 }
@@ -202,6 +197,7 @@ init.PLR.processing.params = function(paths) {
   param[['video']][['dummy']] = NA
   param[['artifacts']][['dummy']] = NA
   param[['recon']][['dummy']] = NA
+  param[['decomp_augm']][['dummy']] = NA
   
   return(param)
   

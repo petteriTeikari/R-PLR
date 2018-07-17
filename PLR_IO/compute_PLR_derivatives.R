@@ -1,5 +1,5 @@
 compute.PLR.derivatives = function(t, y, deriv_smooth = 'loess', loess_span = 0.15,
-                                   debugON = FALSE, pre_denoising = TRUE) {
+                                   debugON = FALSE) {
   
   # Smooth first with LOESS
   # https://stackoverflow.com/questions/14082525/how-to-calculate-first-derivative-of-time-series
@@ -17,30 +17,7 @@ compute.PLR.derivatives = function(t, y, deriv_smooth = 'loess', loess_span = 0.
   # upsample_factor = 4 # with 4 from 30fps to 120fps
   # no_of_samples_in = length(y)
   # time_new = seq(from = t[1], to = tail(t,1), length = upsample_factor*no_of_samples_in)
-  
-  if (pre_denoising) {
-    
-    library(wmtsa)
-    library(ifultools)
-    library(Rwave)
-    
-    diff1_denoised = wavShrink(diff1, wavelet='s8',
-                               n.level=ilogb(length(diff1), base=2),
-                               shrink.fun="hard", thresh.fun="universal", threshold=NULL,
-                               thresh.scale=1, xform="modwt", noise.variance=-1.0,
-                               reflect=TRUE)
-  
-    # correct the length
-    y_diff1n = vector(mode = 'numeric', length = length(y))
-    y_diff1n[] = NA
-    y_diff1n[2:length(y_diff1n)] = diff1_denoised
-    y_diff1_denoised = y_diff1n
-    
-    # resid = y_diff1_denoised - y_diff1
-    # plot(y_diff1_denoised, type='l')
-    # seems useless
-  }
-  
+
   options(warn = -1)
   if (identical(deriv_smooth, 'loess')) {
     loess.model1 = loess(y_diff1 ~ t, span = loess_span)
@@ -64,7 +41,7 @@ compute.PLR.derivatives = function(t, y, deriv_smooth = 'loess', loess_span = 0.
     options(warn = 0)
     y_diff1_model = predict(loess.model1, data.frame(t), se = TRUE)
     
-    if (is.na(y_diff1_model)) {
+    if (is.na(y_diff1_model[1])) {
       span_increment = 0.1
       cat(' initial span (', loess_span,
           ') too small. Increasing it with ', span_increment, 'and try again')

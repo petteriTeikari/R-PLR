@@ -311,7 +311,6 @@ age.match.groups = function(list_out, master_indices_out, grouping_vars_out,
     no_in_range = sum(indices_in_range == TRUE)
     inrange_all_ages = ages_left_vector[indices_in_range]
     groupvars_left = grouping_vars_out[indices_in_range]
-    
 
   # SELECT THE MATCHED SUBJECTS ---------------------------------------------
 

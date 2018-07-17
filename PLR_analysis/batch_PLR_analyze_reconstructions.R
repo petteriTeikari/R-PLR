@@ -33,7 +33,7 @@
   # Overwrite the initialized data folder, if wanted
   # the use of ".Platform$file.sep" is better for Windows vs. Linux/Max
   # compatibility as the separator is different "\" vs. "/"
-    data_path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/reconstructed'
+    data_path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/FinalOUT'
     # TODO! make non-hardcoded, relative maybe
     # data_path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/recon/debug'
     

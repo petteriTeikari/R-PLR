@@ -1,4 +1,5 @@
-batch.EMD.decomposition = function(data_path = NA, RPLR_recon_path = NA,
+batch.EMD.decomposition = function(data_path = NA, data_path_out = NA,
+                                    RPLR_recon_path = NA,
                                     parameters, RPLR_paths, masterExcel,
                                     process_only_unprocessed = FALSE,
                                     path_check_for_done, 
@@ -15,7 +16,9 @@ batch.EMD.decomposition = function(data_path = NA, RPLR_recon_path = NA,
     script.dir = RPLR_recon_path
   }
 
-  data_path_out = file.path(data_path, '..', paste0('recon_EMD_', pupil_col), fsep = .Platform$file.sep)
+  if (is.na(data_path_out)) {
+    data_path_out = file.path(data_path, '..', paste0('recon_EMD_', pupil_col), fsep = .Platform$file.sep)
+  }
   source_path = file.path(script.dir, 'subfunctions', fsep = .Platform$file.sep)
   IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
   config_path = file.path(script.dir, '..', 'config', fsep = .Platform$file.sep)
@@ -35,7 +38,7 @@ batch.EMD.decomposition = function(data_path = NA, RPLR_recon_path = NA,
   # Parameters
   param = list()
   param[['fps']] = 30
-  param[['no_of_cores_to_use']] = detectCores() 
+  param[['no_of_cores_to_use']] = detectCores() - 2
 
 # CEEMD Decomposition ----------------------------------------------------------------
   

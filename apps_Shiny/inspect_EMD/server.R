@@ -12,9 +12,11 @@ recon_dir = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/P
 IO_path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/PLR_IO/'
 
 # DATA
-path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/recon_EMD_pupil'
+path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/recon_EMD'
+path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/SERI_2017_EMD'
 pattern = '*.csv'
 path_out = file.path(path, '..', 'reconstructed', fsep = .Platform$file.sep)
+path_out = file.path(path, 'IMF_fusion', fsep = .Platform$file.sep)
 move_path = file.path(path, 'DONE', fsep = .Platform$file.sep) # move input to, when done
 
 # Source the subfunctions
@@ -30,7 +32,7 @@ server = function(input, output, session) {
     files_fullpath = list.files(path=path, pattern=pattern, recursive=FALSE, full.names = TRUE)
     
     # check undone better
-    process_only_unprocessed = TRUE
+    process_only_unprocessed = FALSE
     if (process_only_unprocessed) {
       indices_undone = check.for.done.filecodes(files_fullpath, path_out)
       files_fullpath = files_fullpath[indices_undone]
@@ -42,31 +44,10 @@ server = function(input, output, session) {
     
     # Read in
     df_CEEMD = read.csv(filename_in)
-    CEEMD_names = colnames(df_CEEMD)
-      imf_indices = which(mapply(grep,'^CEEMD',CEEMD_names) == 1)
-      time_index = which(mapply(grep,'^time',CEEMD_names) == 1)
-      residue_index = which(mapply(grep,'^residue',CEEMD_names) == 1)
-      indices_to_keep = c(imf_indices, residue_index)
-      
-      # Check that there is something on residue
-      if (is.logical(df_CEEMD$residue)) {
-        df_CEEMD$residue = as.numeric(df_CEEMD$residue)
-        df_CEEMD$residue[] = 0
-        warning('Your EMD did not leave any residue')
-      }
-    
-    # Keep now only the IMFs, and later on figure out if you want to display  
-    # instantaneous frequencies and amplitudes 
-    df_IMFs = df_CEEMD[indices_to_keep]
-      number_of_IMFs = length(df_IMFs)
-      names_IMF_in = colnames(df_IMFs)
-    
-    
-    # trim names
-    names_IMF = names_IMF_in
-    for (i in 1 : length(names_IMF_in)) {
-      names_IMF[i] = gsub('CEEMD_', '', names_IMF_in[i])
-    }
+   
+    cleaned = pre.clean.EMD.df(df_CEEMD)
+      df_IMFs = cleaned[[1]] 
+      names_IMF = cleaned[[2]]
     
     # Make IMFs plottable into a single ggplot plot with baseline offsets
     # df_plot_IMFs = add.offsets.for.plt(df_IMFs, names_IMF)
@@ -236,7 +217,9 @@ server = function(input, output, session) {
         
         smooth = vector(,length(smooth_list[1]))
         for (i in 1 : length(smooth_list)) {
-          smooth = smooth + smooth_list[[i]]
+          
+          temp = cbind(smooth, smooth_list[[i]])
+          smooth = rowSums(temp, na.rm = TRUE)
         }
         
         
@@ -247,12 +230,22 @@ server = function(input, output, session) {
         
         # save to disk
         just_filename = paste0(filecode, '.csv')
+        
+        if (grepl('SERI_2017', path)) {
+          color = strsplit(tail(strsplit(filename_in, .Platform$file.sep)[[1]],1), '_')[[1]][2]
+          just_filename = paste0(filecode, '_', color, '.csv')
+        }
+        
+        cat('Writing to folder = ', path_out, '\n')
         export.pupil.dataframe.toDisk(output_mapping, just_filename, path_out, 'mapping')
         export.pupil.dataframe.toDisk(signals_df, just_filename, path_out, 'signals')
         
         
         # Move the done file to done
         just_filename_in = tail(strsplit(filename_in, .Platform$file.sep)[[1]],1)
+        
+        
+        
         cat(paste('     -- Moving the input file to:',  move_path, '\n'))
         from = file.path(path, just_filename_in, fsep = .Platform$file.sep)
         to = file.path(move_path, just_filename_in, fsep = .Platform$file.sep)

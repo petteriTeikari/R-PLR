@@ -5,7 +5,8 @@ batch.AnalyzeAndReImpute = function(data_path = NA, RPLR_recon_path = NA,
                               pupil_col = 'pupil',
                               combine_with_database = TRUE,
                               database_path,
-                              iterate_imputation = FALSE) {
+                              iterate_imputation = FALSE,
+                              vars_to_keep = c('time_onsetZero', 'pupil_toBeImputed', 'outlier_labels', 'error_fractional')) {
 
   # Initialize --------------------------------------------------------------
   
@@ -20,6 +21,7 @@ batch.AnalyzeAndReImpute = function(data_path = NA, RPLR_recon_path = NA,
     }
     
     data_path_out = file.path(data_path, '..', 'imputation_final', fsep = .Platform$file.sep)
+    data_path_out = file.path(data_path, '..', 'SERI_2017_imputed', fsep = .Platform$file.sep)
     source_path = file.path(script.dir, 'subfunctions', fsep = .Platform$file.sep)
     IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
     config_path = file.path(script.dir, '..', 'config', fsep = .Platform$file.sep)
@@ -53,11 +55,13 @@ batch.AnalyzeAndReImpute = function(data_path = NA, RPLR_recon_path = NA,
       
       # First with the TSImpute, file-by-file
       list_of_DFs = lapply(files_to_process, function(files_to_process){
-        analyze.and.reimpute(files_to_process, data_path_out, param, pupil_col = pupil_col)
+        analyze.and.reimpute(files_to_process, data_path_out, param, 
+                             time_col = vars_to_keep[1], 
+                             pupil_col = vars_to_keep[2],
+                             error_col = vars_to_keep[3])
       })
       no_of_new_files = length(list_of_DFs)
-      
-      vars_to_keep = c('time_onsetZero', 'pupil_toBeImputed', 'outlier_labels', 'error_fractional')
+     
       vars_as_matrices = combine.list.of.dataframes(list_of_DFs, vars_to_keep)
       # now we have for example 4 matrices that you could save as .csv files if you want these outside R
       
@@ -67,7 +71,7 @@ batch.AnalyzeAndReImpute = function(data_path = NA, RPLR_recon_path = NA,
       }
       
       # Heavier lifting with MissForest
-      imputed_missForest = impute.with.MissForest(vars_as_matrices, pupil_col = 'pupil_toBeImputed')
+      imputed_missForest = impute.with.MissForest(vars_as_matrices, pupil_col = vars_to_keep[2])
       matrix_imputed = imputed_missForest[[1]]
       OOBerror = imputed_missForest[[2]]
       
@@ -86,9 +90,16 @@ batch.AnalyzeAndReImpute = function(data_path = NA, RPLR_recon_path = NA,
         
         just_filename = tail(strsplit(files_to_process[i], .Platform$file.sep)[[1]], 1)
         filecode = strsplit(just_filename, '_')[[1]][1]
+        field_2nd = strsplit(just_filename, '_')[[1]][2]
+        
+        if (identical(field_2nd, 'red') | identical(field_2nd, 'blue')) {
+          color = field_2nd  
+        } else {
+          color = ''
+        }
         
         export.pupil.dataframe.toDisk(df_out, 
-                                      paste0(filecode, '.csv'),
+                                      paste0(filecode, '_', color, '.csv'),
                                       data_path_out, 'missForest')
       }
     }

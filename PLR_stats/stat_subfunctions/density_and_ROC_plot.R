@@ -267,8 +267,8 @@ get.possible.combinations = function(factors, to_compare_together = 2) {
 combine.pathologies = function(factors_in, factors_kept) {
   
   factors_out = factors_in
-  str(factors_out)
-  str(factors_in)
+  # str(factors_out)
+  # str(factors_in)
   
   for (i in 1 : length(factors_kept)) {
     

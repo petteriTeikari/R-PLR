@@ -121,6 +121,39 @@ generate.signals.from.indices = function(df_IMFs, indices, components) {
   
 }
 
+pre.clean.EMD.df = function(df_CEEMD) {
+  
+  CEEMD_names = colnames(df_CEEMD)
+  imf_indices = which(mapply(grep,'^CEEMD',CEEMD_names) == 1)
+  time_index = which(mapply(grep,'^time',CEEMD_names) == 1)
+  residue_index = which(mapply(grep,'^residue',CEEMD_names) == 1)
+  indices_to_keep = c(imf_indices, residue_index)
+  
+  # Check that there is something on residue
+  if (is.logical(df_CEEMD$residue)) {
+    df_CEEMD$residue = as.numeric(df_CEEMD$residue)
+    df_CEEMD$residue[] = 0
+    # warning('Your EMD did not leave any residue')
+  }
+  
+  # Keep now only the IMFs, and later on figure out if you want to display  
+  # instantaneous frequencies and amplitudes 
+  df_IMFs = df_CEEMD[indices_to_keep]
+  number_of_IMFs = length(df_IMFs)
+  names_IMF_in = colnames(df_IMFs)
+  
+  
+  # trim names
+  names_IMF = names_IMF_in
+  for (i in 1 : length(names_IMF_in)) {
+    names_IMF[i] = gsub('CEEMD_', '', names_IMF_in[i])
+  }
+  
+  return(list(df_IMFs, names_IMF))
+}
+
+
+
 estimate.imf.combination.indices = function(df_IMFs, input_type = '1stPass', path = NA,
                                             filecode = NA, param_decomp = NA, verbose = TRUE) {
   
@@ -142,7 +175,8 @@ estimate.imf.combination.indices = function(df_IMFs, input_type = '1stPass', pat
     noise_ind_max = 5
   } else if (grepl('noise', path)) {
     noise_ind_max = no_of_IMFs-2
-    
+  } else if (grepl('SERI_2017', path)) {  
+    noise_ind_max = 5
   } else {
     noise_ind_max = 4
   }
