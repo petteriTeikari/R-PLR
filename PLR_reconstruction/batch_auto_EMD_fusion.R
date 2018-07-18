@@ -12,6 +12,7 @@ batch.auto.EMD.fusion = function(data_path, data_path_EMD, data_path_EMD_fusion,
   
   source(file.path(RPLR_recon_path, 'subfunctions', 'post_process_decomposition_IMFs.R', fsep = .Platform$file.sep))
   source(file.path(RPLR_recon_path, 'subfunctions', 'lowLevel_decomposition_wrappers.R', fsep = .Platform$file.sep))
+  source('~/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/PLR_artifacts/subfunctions/changepoint_detection.R')
   
   # go through the files
   for (file in 1: length(files_imputed)) {
@@ -20,9 +21,12 @@ batch.auto.EMD.fusion = function(data_path, data_path_EMD, data_path_EMD_fusion,
     df_in = read.csv(files_imputed[file])
     df_in = check.data.integrity(df_in, datatype = 'imputed')
     filecode_in = strsplit(tail(strsplit(files_imputed[file], .Platform$file.sep)[[1]],1), '_')[[1]][1]
+    color_in = strsplit(tail(strsplit(files_imputed[file], .Platform$file.sep)[[1]],1), '_')[[1]][2]
     
     # EMD
-    index_1 = find.corresponding.filecode(filecode = filecode_in, file_listing = files_EMD)
+    index_1 = find.corresponding.filecode(filecode = filecode_in, 
+                                          color = color_in,
+                                          file_listing = files_EMD)
     if (is.na(index_1)) {
       warning('You are missing EMD for filecode = "', filecode_in, '" this should not be the case!')
     } else {
@@ -33,7 +37,7 @@ batch.auto.EMD.fusion = function(data_path, data_path_EMD, data_path_EMD_fusion,
     # EMD Fusion
     index_2 = find.corresponding.filecode(filecode = filecode_in, file_listing = files_EMD_fusion)
     if (is.na(index_2)) {
-      cat('You are missing EMD Fusion for filecode = "', filecode_in, '", we estimate now the correct fusion automagically')
+      # cat('You are missing EMD Fusion for filecode = "', filecode_in, '", we estimate now the correct fusion automagically')
       df_EMD_fusion = NA
     } else {
       df_EMD_fusion = read.csv(files_EMD_fusion[index_2])
@@ -96,12 +100,17 @@ combine.processing = function(df_in, df_EMD, df_EMD_fusion, path) {
     df_out[['base']] = loess_decomp[[1]]
     df_out[['loFreq']] = loess_decomp[[2]]
     df_out[['hiFreq']] = loess_decomp[[3]]
+    df_out[['noise']] = noise_sum
+    
+  change_detect_augmentation = change.detect.augmentation(t = df_out[['time']], y = df_out[['denoised']])
+    df_out[['cpt_meanvar']] = change_detect_augmentation[[1]]
+    df_out[['loess_cpt']] = change_detect_augmentation[[2]]
   
   return(df_out)
   
 }
 
-find.corresponding.filecode = function(filecode, file_listing) {
+find.corresponding.filecode = function(filecode, color, file_listing) {
   
   if (length(file_listing) == 0) {
     
@@ -113,13 +122,17 @@ find.corresponding.filecode = function(filecode, file_listing) {
     step1 = sapply(file_listing, function(x) strsplit(x, .Platform$file.sep)[[1]], USE.NAMES=FALSE)
     step2 = sapply(step1[dim(step1)[1],], function(x) strsplit(x, '_')[[1]], USE.NAMES=FALSE)
     subject_codes = step2[1,]
-    # color = ## TODO!
+    color_list = step2[2,]
     
     # check if the filecode is found from file_listing
-    ind = which(subject_codes %in% filecode) # will find both blue and red
+    ind_code = subject_codes %in% filecode # will find both blue and red
+    color_code = color_list %in% color # will find both blue and red
+    ind = which(ind_code & color_code)
     
     if (length(ind) == 0) {
       ind = NA
+    } else {
+      
     }
     
   }

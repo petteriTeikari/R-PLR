@@ -64,6 +64,42 @@ loess.decomposition = function(t, y, span1 = 0.1, span2 = 0.3) {
   
 }
 
+change.detect.augmentation = function(t, y) {
+  
+  library(changepoint)
+  
+  # use the same function as in artifact cleaning
+  df_out = changepoint.detection(data.frame(time = t, pupil = y))
+  t_cpt = df_out$time
+  y_cpt = df_out$pupil
+  nan_y = sum(is.na(y_cpt))
+  
+  # 1st iteration LOESS
+  loess_model = loess(y_cpt~t_cpt, span = 0.3, degree = 1)
+  y_new = predict(loess_model, newdata=t)
+  residual = y - y_new
+  
+  # Get rid of some outliers
+  outlier_limit = sd(residual)*1.96
+  outlier_indices = abs(residual) > outlier_limit
+  y_cpt2 = y_cpt
+  y_cpt2[outlier_indices] = NA
+  nan_y2 = sum(is.na(y_cpt2))
+  
+  # 2nd iteration LOESS
+  loess_model = loess(y_cpt2~t_cpt, span = 0.1, degree = 2)
+  y_new2 = predict(loess_model, newdata=t)
+  residual2 = y - y_new2
+  
+  # plot(t, residual2, type='l')
+  # plot(t, y, type='l')
+  # points(t, y_new, col='blue')
+  # points(t, y_new2, col='red')
+  
+  return(list(y_cpt, y_new2))
+}
+  
+  
                                   
 
 EMD.demo = function() {
