@@ -33,6 +33,8 @@ clean.and.reconstruct.PLR = function() {
                        process_only_unprocessed = TRUE, # no need to re-process all 400 files
                        path_check_for_done = paths[['data_out']][['reconstructed']])
       
+  warning('Inspect the outlier now manually, or change the path from next block if you do not want to do it')
+  
   # Resample to same length
   batch.PLR.resample(data_path = paths[['data_in']][['resampling_corr']], 
                       RPLR_recon_path = paths[['recon']],
@@ -54,6 +56,8 @@ clean.and.reconstruct.PLR = function() {
                             pupil_col = 'pupil',
                             combine_with_database = FALSE,
                             database_path = paths[['data_out']][['reconstructed']])
+  
+  warning('Inspect the imputation now manually, or change the path from next block if you do not want to do it')
   
   # AFTER MANUAL INSPECTION
   # Iterate this, with changed input folder
@@ -105,7 +109,16 @@ clean.and.reconstruct.PLR = function() {
                                         path_check_for_done = paths[['data_out']][['FinalOUT']],
                                         pupil_col = 'denoised')
   
-  
+  # Finally compute the hand-crafted features here
+  batch.PLR.analyze.reconstructions(data_path =  paths[['data_in']][['features']], 
+                                     data_path_out = paths[['data_out']][['features']],
+                                     RPLR_analysis_path = paths[['analysis']],
+                                     parameters, RPLR_paths, masterExcel,
+                                     process_only_unprocessed = TRUE,
+                                     path_check_for_done = paths[['data_out']][['features']], 
+                                     no_of_cores_to_use = detectCores(),
+                                     pupil_col = 'pupil')
+
 }
 
 
@@ -127,6 +140,7 @@ init.paths.and.functions = function(paths) {
   paths[['data_out']][['reconstruction']] = file.path(paths[['data_out']][['base']], 'recon')
   paths[['data_out']][['reconstructed']] = file.path(paths[['data_out']][['base']], 'reconstructed') 
   paths[['data_out']][['FinalOUT']] = file.path(paths[['data_out']][['base']], 'FinalOUT') 
+  paths[['data_out']][['features']] = file.path(paths[['data_out']][['base']], 'PLR_feat') 
   
   # inputs from these outputs
   paths[['data_in']][['video']] = paths[['data_in']][['base']]
@@ -137,6 +151,7 @@ init.paths.and.functions = function(paths) {
   paths[['data_in']][['imputation_rerun']] = file.path(paths[['data_out']][['base']], 
                                                        'recon_imputation_correction', fsep = .Platform$file.sep)
   paths[['data_in']][['EMD']] = paths[['data_out']][['imputed']]
+  paths[['data_in']][['features']] = paths[['data_out']][['FinalOUT']]
   
   # Excel Master data sheet
   paths[['data_in']][['masterSheet']] = file.path(paths[['data_out']][['base']], '..', fsep = .Platform$file.sep)
@@ -152,6 +167,7 @@ init.paths.and.functions = function(paths) {
   paths[['video']] = file.path(paths[['RPLR']][['base']], 'PLR_video', fsep = .Platform$file.sep)
   paths[['artifacts']] = file.path(paths[['RPLR']][['base']], 'PLR_artifacts', fsep = .Platform$file.sep)
   paths[['recon']] =  file.path(paths[['RPLR']][['base']], 'PLR_reconstruction', fsep = .Platform$file.sep)
+  paths[['analysis']] =  file.path(paths[['RPLR']][['base']], 'PLR_analysis', fsep = .Platform$file.sep)
   
   # R paths
   paths[['RPLR']][['IO']] = file.path(paths[['RPLR']][['base']], 'PLR_IO', fsep = .Platform$file.sep)
