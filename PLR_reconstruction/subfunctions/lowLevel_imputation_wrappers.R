@@ -111,10 +111,10 @@ debug.imputation.ts = function(t_t, y_ts, y_na_t, na_found_t) {
   
 }
 
-impute.with.MissForest = function(vars_as_matrices, pupil_col = 'pupil_toBeImputed') {
+impute.with.MissForest = function(vars_as_matrices, pupil_col = 'pupil_toBeImputed', miss_forest_parallelize) {
   
   library(missForest)
-  # library(doParallel)  
+  library(doParallel)  
   
   # registerDoParallel(cores=2)  
   getDoParWorkers()
@@ -125,7 +125,7 @@ impute.with.MissForest = function(vars_as_matrices, pupil_col = 'pupil_toBeImput
   matrix_with_missing_value = vars_as_matrices[[pupil_col]]
   
   start_time <- Sys.time()
-  filled_matrix <- missForest(matrix_with_missing_value, parallelize='forests') 
+  filled_matrix <- missForest(matrix_with_missing_value, parallelize=miss_forest_parallelize) 
   end_time <- Sys.time(); end_time - start_time
   # missForest iteration 5 in progress...done!
   # Time difference of 2.00318 hours

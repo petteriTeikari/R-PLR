@@ -149,7 +149,7 @@ pre.clean.EMD.df = function(df_CEEMD) {
     names_IMF[i] = gsub('CEEMD_', '', names_IMF_in[i])
   }
   
-  return(list(df_IMFs, names_IMF))
+  return(list(df_IMFs, names_IMF, names_IMF_in, number_of_IMFs))
 }
 
 

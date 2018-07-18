@@ -54,7 +54,8 @@ clean.and.reconstruct.PLR = function() {
                             process_only_unprocessed = TRUE, # no need to re-process all 400 files
                             path_check_for_done = paths[['data_out']][['reconstructed']], 
                             pupil_col = 'pupil',
-                            combine_with_database = FALSE,
+                            miss_forest_parallelize = 'no',
+                            combine_with_database = TRUE,
                             database_path = paths[['data_out']][['reconstructed']])
   
   warning('Inspect the imputation now manually, or change the path from next block if you do not want to do it')
@@ -76,6 +77,7 @@ clean.and.reconstruct.PLR = function() {
   
   # Run Empirical Mode Decomposition for denoising
   batch.EMD.decomposition(data_path = paths[['data_in']][['EMD']], 
+                          data_path_out = paths[['data_out']][['EMD']],
                           RPLR_recon_path = paths[['recon']],
                           parameters = param[['recon']],
                           RPLR_paths = paths[['RPLR']],
@@ -90,11 +92,9 @@ clean.and.reconstruct.PLR = function() {
                                       RPLR_scripts_path = paths[['RPLR']][['scripts']],
                                       subfolder_paths = c('imputation_final',
                                                           'recon_EMD',
-                                                          # 'recon_EMD_subcomp_fusion',
                                                           file.path('recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep)), 
                                      patterns = c('*.csv',
                                                   '*.csv',
-                                                  # '*.csv',
                                                   '*.csv'))
   
   # Do some semi-intelligent decompositions for machine learning data augmentation purposes
@@ -131,8 +131,8 @@ init.paths.and.functions = function(paths) {
   # Derived paths
   paths[['data_out']][['video']] = file.path(paths[['data_out']][['base']], 'VIDEO')
   paths[['data_out']][['artifacts']] = file.path(paths[['data_out']][['base']], 'outlier_free') 
-  paths[['data_out']][['artifacts_corrected']] = file.path(paths[['data_out']][['base']], 'outlier_free_corrected') 
-  paths[['data_out']][['resampling']] = file.path(paths[['data_out']][['base']], 'recon_resampled')
+  paths[['data_out']][['artifacts_corrected']] = file.path(paths[['data_out']][['artifacts']], 'outlier_free_corrected') 
+  paths[['data_out']][['resampling']] = file.path(paths[['data_out']][['artifacts']], 'recon_resampled')
   paths[['data_out']][['imputed']] = file.path(paths[['data_out']][['base']], 'imputation_final')
   paths[['data_out']][['EMD']] = file.path(paths[['data_out']][['base']], 'recon_EMD') 
   paths[['data_out']][['EMD_fusion']] = file.path(paths[['data_out']][['EMD']], 'IMF_fusion') 
@@ -187,6 +187,8 @@ init.paths.and.functions = function(paths) {
   
   source(file.path(paths[['recon']], 'batch_data_decompose_for_augmentation.R', fsep = .Platform$file.sep))
   source(file.path(paths[['recon']], 'subfunctions', 'file_decomp_augmentation_wrapper.R', fsep = .Platform$file.sep))
+  
+  source(file.path(paths[['analysis']], 'batch_PLR_analyze_reconstructions.R', fsep = .Platform$file.sep))
   
   return(paths)
   

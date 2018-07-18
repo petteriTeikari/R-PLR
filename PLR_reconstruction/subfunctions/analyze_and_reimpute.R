@@ -9,6 +9,15 @@ analyze.and.reimpute = function(filename_path, data_path_out, param, vars_to_kee
   
   df_in = read.csv(filename_path)
   
+  # Check first if your desired pupil_col even exists
+  col_names = colnames(df_in)
+  if (length(which(col_names %in% pupil_col)) == 0) {
+    # warning('You wanted to use pupil column "', pupil_col, '" for re-imputation, but that was not found in the data frame')
+    if (identical(pupil_col, 'pupil_toBeImputed')) {
+      df_in[['pupil_toBeImputed']] = df_in$pupil_outlier_corrected
+    }
+  }
+  
   # And get the previously corrected labels
   gt_outlier_corr = is.na(df_in[[pupil_col]])
   sum_1stPass = sum(gt_outlier_corr)
@@ -29,7 +38,9 @@ analyze.and.reimpute = function(filename_path, data_path_out, param, vars_to_kee
   y = df_in[[pupil_col]]
   error_frac = df_in[[error_col]]
   weights = 1 / ((error_frac*y)^2)
+  options(warn = -1)
   weights_norm = weights / max(weights, na.rm = TRUE)
+  options(warn = 0)
   
   df_out = df_in
   

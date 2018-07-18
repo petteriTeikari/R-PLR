@@ -53,6 +53,11 @@ combine.data.from.multiple.folders = function(path_main = NA,
       # TODO!
       # rename.folder.contents.to.remove.duplicates(file_listing[[colname]], subfolder_paths[i], fullpath)
       
+      if (grepl('IMF', subfolder_paths[i])) {
+        signals_ind = grepl('signals', file_listing[[colname]])
+        file_listing[[colname]] = file_listing[[colname]][signals_ind]
+      }
+      
       # do file listing again
       file_listing[[colname]] = list.files(path=fullpath, pattern=patterns[i], recursive=FALSE, full.names = TRUE)
       

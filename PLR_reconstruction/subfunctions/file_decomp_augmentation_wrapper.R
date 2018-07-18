@@ -51,7 +51,7 @@ file.decomp_augmentation.wrapper = function(filename_path, data_path_out, param,
 
     loess_model_lo = loess(loFreq~t, span = 0.1, degree = 2)
     residual_lo = loFreq - loess_model_lo$fitted
-    y_smooth_lo = y_smooth_deg2 - residual_lo
+    y_smooth_lo = y_smooth_hi - residual_lo
     
     loess_smooth = loess(y_smooth_lo~t, span = 0.1, degree = 2)
     residual_smooth = y_smooth_lo - loess_smooth$fitted

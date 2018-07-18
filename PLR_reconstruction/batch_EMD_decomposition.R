@@ -18,6 +18,7 @@ batch.EMD.decomposition = function(data_path = NA, data_path_out = NA,
 
   if (is.na(data_path_out)) {
     data_path_out = file.path(data_path, '..', paste0('recon_EMD_', pupil_col), fsep = .Platform$file.sep)
+    data_path_out = file.path(data_path, '..', 'recon_EMD', fsep = .Platform$file.sep)
   }
   source_path = file.path(script.dir, 'subfunctions', fsep = .Platform$file.sep)
   IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
