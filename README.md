@@ -23,3 +23,76 @@ R packages tend to go to [Journal of Statistical Software](https://github.com/pe
 
 `git submodule update --recursive --remote`
  
+# How-to-use
+
+In theory the PLR files could be analyzed end-to-end from you putting the _"BR"_ to the Dropbox folder and then running that script:
+
+`https://github.com/petteriTeikari/R-PLR/blob/master/clean_and_reconstruct_all_PLR.R`
+
+## 1) Import the traces
+
+Basically just reads in the results and get rid of bunch of redundant R,G,B columns
+`batch.PLR.videos()`
+
+## 2) Reduce artifacts
+
+Not the most intelligent algorithm at the moment
+`batch.PLR.artifacts()`
+
+### 2b) Check the quality of the artifact removal
+
+**Make sure that the machine learning classifier gets only the good quality "ground truth" traces** The crappy ones without cleaning are easy to mix later on 
+
+Run `R-PLR/apps_Shiny/inspect_outliers/server.R`
+
+## 3) Resample to the same time vector
+
+Not actually interpolating/resampling, just re-arranging the samples to common time vector with bunch of NAs still here
+
+`batch.PLR.resample()`
+
+## 4) Imputes the missing values (NAs)
+
+Imputes the missing values with MissForest. Takes some time for many files
+
+`batch.AnalyzeAndReImpute()`
+
+### 4b) Check the quality of the imputation
+
+Again if the imputation have hallucinated weird stuff especially for long durations of missing data, the machine learning will have harder time coping with this, so **please check again**
+
+Run `R-PLR/apps_Shiny/inspect_outliers/server.R` with the `mode` set to `imputation`
+
+## 4c) Re-impute the values after manual check
+
+`batch.AnalyzeAndReImpute()`
+
+## 5) Decompose the traces with EMD 
+
+This decomposition is good for denoising, and then the loFreq / hiFreq decomposition is useful for data augmentation later on as well 
+
+`batch.EMD.decomposition()`
+
+## 5b) Again check for how to combine the IMFs
+
+TODO! This should be automagicated, should be rather simple, rather than wasting someone's time for this
+
+Run `R-PLR/apps_Shiny/inspect_EMD/server.R`
+
+## 6) Combine different files together
+
+Now the results are scattered to different folders and we combine them to have only one trace file per subject code
+
+`combine.data.from.multiple.folders()`
+
+## 7) Augment data for machine learning and compute 1st/2nd derivatives of trace
+
+"Intelligently" guess how we could distort the signal in other words to have the machine learning be a bit more robust. And as we smooth the signal slightly more, the 1st (velocity) and 2nd order derivatives (differences) become a bit more robust to compute
+
+`batch.data.decompose.for.augmentation()`
+
+## 8) Compute the hand-crafted features from the outlier-free and denoised traces
+
+Finally compute the hand-crafted features such as max constriction, slope, PIPR along with the Hilbert spectrum (time-frequency from EMD) and the fractal features.
+
+`batch.PLR.analyze.reconstructions()`
