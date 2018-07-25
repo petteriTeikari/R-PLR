@@ -1,7 +1,7 @@
 clean.plr <- function(data_frame_in, source_path,  
-                      blink_hard_threshold, spline_iter_no, 
-                      sigma_multip, debug_clean_on,
-                      changepoint = FALSE) {
+                      blink_hard_threshold = 9, spline_iter_no = 2, 
+                      sigma_multip = 1.96, debug_clean_on = TRUE,
+                      changepoint = FALSE, know_the_light_onset = TRUE) {
 
   # Initialization ----------------------------------------------------------
   
@@ -14,6 +14,7 @@ clean.plr <- function(data_frame_in, source_path,
     source(file.path(source_path, 'remove_na.R', fsep = .Platform$file.sep))
     source(file.path(source_path, 'set_outliers_to_na.R', fsep = .Platform$file.sep))
     source(file.path(source_path, 'accumulate_nans.R', fsep = .Platform$file.sep))
+    source(file.path(source_path, 'changepoint_detection.R', fsep = .Platform$file.sep))
     
   
   # Cleaning part -----------------------------------------------------------
@@ -23,13 +24,18 @@ clean.plr <- function(data_frame_in, source_path,
   
     # quick'n'dirty fix for outlier so that limits are more loose on light onsets
     verbose = FALSE
-    lights_on = define.whenLightWasOn(data_frame_in, verbose)
-    
-    padding = 2*10 # frames
-    safe_vector = create.safe.vector(data_frame_in$time, lights_on, padding)
-    # TODO! Add switch here for multiple ways to kick out outliers
-    
-    # Remove "illegal values", such as "-1"
+    if (know_the_light_onset) {
+      lights_on = define.whenLightWasOn(data_frame_in, verbose)
+      
+      padding = 2*10 # frames
+      safe_vector = create.safe.vector(data_frame_in$time, lights_on, padding)
+      # TODO! Add switch here for multiple ways to kick out outliers
+      
+    } else {
+      
+      safe_vector = as.numeric(vector(,length=length(data_frame_in[[1]])))
+      
+    }
   
     # Remove the "clear blinks" using hard threshold
     # indices_hard_thr = data_frame$pupil < blink_hard_threshold

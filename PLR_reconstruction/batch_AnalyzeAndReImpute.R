@@ -1,11 +1,15 @@
-batch.AnalyzeAndReImpute = function(data_path = NA, RPLR_recon_path = NA,
-                              parameters, RPLR_paths, masterExcel,
+batch.AnalyzeAndReImpute = function(data_path = NA, 
+                                    RPLR_recon_path = NA,
+                              parameters = list(), 
+                              RPLR_paths , 
+                              masterExcel = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/Master_File_De-Identified_Copy_For_Petteri.xlsx',
                               process_only_unprocessed = FALSE,
-                              path_check_for_done, 
+                              path_check_for_done = NA, 
                               pupil_col = 'pupil',
+                              smooth_trace_before_imputation = FALSE,
                               miss_forest_parallelize = 'forests',
-                              combine_with_database = TRUE,
-                              database_path,
+                              combine_with_database = FALSE,
+                              database_path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/reconstructed',
                               iterate_imputation = FALSE,
                               vars_to_keep = c('time_onsetZero', 'pupil_toBeImputed', 'outlier_labels', 'error_fractional')) {
 
@@ -55,13 +59,18 @@ batch.AnalyzeAndReImpute = function(data_path = NA, RPLR_recon_path = NA,
       # REIMPUTE ----------------------------------------------------------------
       
       # First with the TSImpute, file-by-file
-      cat('Importing the new undones files (n =', length(files_to_process), ')\n')
+      cat('Importing the "undone" files (n =', length(files_to_process), ')\n')
+      if (smooth_trace_before_imputation) {
+        cat(' ... using LOESS smoothing with import of each file\n')
+      }
       list_of_DFs = lapply(files_to_process, function(files_to_process){
         analyze.and.reimpute(files_to_process, data_path_out, param, 
+                             smooth_trace_before_imputation,
                              time_col = vars_to_keep[1], 
                              pupil_col = vars_to_keep[2],
                              error_col = vars_to_keep[3])
       })
+      cat('\n')
       no_of_new_files = length(list_of_DFs)
      
       vars_as_matrices = combine.list.of.dataframes(list_of_DFs, vars_to_keep)

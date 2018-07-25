@@ -1,11 +1,19 @@
-changepoint.detection = function(df) {
+changepoint.detection = function(df, method = 'meanvar') {
   
+  library(changepoint)
   plot(df$time, df$pupil, type='l')
   
   options(warn = -1)
   ts = convert.vectors.to.time.series.object(t = df$time, y = df$pupil)
   options(warn = 0)
-  mvalue = cpt.meanvar(ts, method="PELT") #mean changepoints using PELT  
+  
+  if (identical(method, 'meanvar')) {
+    mvalue = cpt.meanvar(ts, method="PELT") #mean changepoints using PELT  
+  } else if (identical(method, 'mean')) {
+    mvalue = cpt.mean(ts, method="PELT") #mean changepoints using PELT  
+  } else if (identical(method, 'var')) {
+    mvalue = cpt.var(ts, method="PELT") #mean changepoints using PELT  
+  }
   
   cpts = attributes(mvalue)$cpts
   change_times = df$time[cpts]

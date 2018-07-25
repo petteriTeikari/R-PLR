@@ -7,7 +7,7 @@ export.pupil.dataframe.toDisk <- function(df_in, filename_path, data_path_out, d
   
   # check if they exist or need to be created
   if (dir.exists(data_path_out) == FALSE) {
-    cat('Creating the subdirectory for data export: ', data_path_out)
+    cat('Creating the subdirectory for data export: ', data_path_out, '\n')
     dir.create(data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
 

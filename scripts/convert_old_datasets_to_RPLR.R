@@ -2,7 +2,7 @@ convert.old.datasets.to.RPLR = function() {
   
   library(tidyr)
   
-  RPLR_path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR'
+  RPLR_path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_COD/R-PLR'
   # RPLR_path = file.path(dirname(sys.frame(1)$ofile), '..', fsep = .Platform$file.sep)
   source(file.path(RPLR_path, 'PLR_reconstruction', 'subfunctions', 'create_PLR_dataset_matrix.R', fsep = .Platform$file.sep))
   source(file.path(RPLR_path, 'PLR_IO', 'export_pupil_dataframe_toDisk.R', fsep = .Platform$file.sep))

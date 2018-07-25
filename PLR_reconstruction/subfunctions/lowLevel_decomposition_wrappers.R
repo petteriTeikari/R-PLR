@@ -15,9 +15,23 @@ decomp.EMD.wrapper = function(t, data_in, filecodes, method_name, param_decomp, 
     
 }
 
-decomp.EMD.per.subject = function(t, y, filecode, method_name, param_decomp, debug) {
+decomp.EMD.per.subject = function(t, y, filecode, method_name, param_decomp, debug, dataset_string) {
+  
+  if (identical(dataset_string, 'SERI_median')) {
+    
+    loess_model = loess(y~t, span = 0.01, degree = 2)
+    
+    # Add small noise to combat the running
+    noise.amp <- sd(loess_model$residuals)
+    fit = loess_model$fitted
+    noise = rnorm(length(fit), mean = 0, sd = noise.amp)
+    y = fit + noise
+    plot(t,y, type = 'l')
+    
+  }
   
   model <- loess(y ~ t, span = 0.1) # estimate the local mean with LOESS
+  # plot(model$residuals)
   noise.amp <- sd(model$residuals)
   trials <- as.numeric(param_decomp[['EMD_trials']])
   nimf = 10

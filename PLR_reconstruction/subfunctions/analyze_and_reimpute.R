@@ -1,8 +1,10 @@
 analyze.and.reimpute = function(filename_path, data_path_out, param, vars_to_keep, 
+                                smooth_trace_before_imputation = FALSE,
                                 pupil_col = 'pupil', time_col = 'time_onsetZero', error_col = 'error',
                                 debug = FALSE, verbose = TRUE) {
   
   just_filename = tail(strsplit(filename_path, .Platform$file.sep)[[1]], 1)
+  # cat(just_filename)
   filecode = strsplit(just_filename, '_')[[1]][1]
   # cat(filecode, ' ')
   cat('.')
@@ -41,6 +43,16 @@ analyze.and.reimpute = function(filename_path, data_path_out, param, vars_to_kee
   options(warn = -1)
   weights_norm = weights / max(weights, na.rm = TRUE)
   options(warn = 0)
+  
+  if (smooth_trace_before_imputation) {
+    loess_model = loess(y~t, span=0.02, degree = 2)
+    y_fit = predict(loess_model, t)
+    y_fusion = 0.5*y + 0.5*y_fit
+    # plot(t,y,type='l')
+    # plot(t,y_fusion,type='l')
+    # plot(t,y_fusion-y,type='l')
+    y = y_fusion
+  }
   
   df_out = df_in
   
@@ -82,6 +94,7 @@ analyze.and.reimpute = function(filename_path, data_path_out, param, vars_to_kee
     ggplot(df_out, aes(time_onsetZero, pupil)) +
       geom_line()
   }
+  
   
   # cat(' NAs=', sum(is.na(df_out[['pupil']])), ' \n')
   return(df_out)

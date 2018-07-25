@@ -13,6 +13,7 @@ batch.auto.EMD.fusion = function(data_path, data_path_EMD, data_path_EMD_fusion,
   source(file.path(RPLR_recon_path, 'subfunctions', 'post_process_decomposition_IMFs.R', fsep = .Platform$file.sep))
   source(file.path(RPLR_recon_path, 'subfunctions', 'lowLevel_decomposition_wrappers.R', fsep = .Platform$file.sep))
   source('~/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/PLR_artifacts/subfunctions/changepoint_detection.R')
+  source('~/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/PLR_reconstruction/subfunctions/helper_functions.R')
   
   # go through the files
   for (file in 1: length(files_imputed)) {
@@ -84,7 +85,7 @@ combine.processing = function(df_in, df_EMD, df_EMD_fusion, path) {
                            df_IMFs$CEEMD_IMF_3, df_IMFs$CEEMD_IMF_4,
                            df_IMFs$CEEMD_IMF_5)
     
-    noise_sum = rowSums(denoised_array, na.rm = TRUE)
+    noise_sum = rowSums(noise_array, na.rm = TRUE)
     df_out[['denoised']] = df_out[['pupil']] - noise_sum
     
   }

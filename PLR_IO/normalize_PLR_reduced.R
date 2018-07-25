@@ -1,12 +1,13 @@
-normalize.PLR.reduced = function(df, config_path, 
+normalize.PLR.reduced = function(df, config_path = NA, 
                                  value_operator = 'median',
                                  normalize_method = 'hybrid',
                                  denormalize_first = FALSE,
                                  global_baseline = TRUE,
+                                 pupil_col = 'pupil',
                                  indices = NA) {
   
   # define baseline
-  if (is.na(indices)) {
+  if (is.na(indices[1])) {
     bins = import.binDefinitions(config_path)
     baseline_period = get.baseline.period.from.bins(bins)
     b_i1 = which.min(abs(baseline_period[1] - df$time_onsetZero))
@@ -16,7 +17,6 @@ normalize.PLR.reduced = function(df, config_path,
     b_i2 = indices[2]
   }
   
-  pupil_col = 'pupil'
   baseline_vector = df[[pupil_col]][b_i1:b_i2]
     
   # the stats of the vector
@@ -65,7 +65,9 @@ normalize.PLR.reduced = function(df, config_path,
                    'hamp_9', 'hamp_10', 'hamp_11', 'base_osc', 
                    'oscillations', 'noiseNorm', 'noiseNonNorm',
                    'hiFreq', 'loFreq', 'base', 'smooth',
-                   'denoised')
+                   'denoised',
+                   'light_on', 'light_state_str', 'light_state',
+                    'baseline', 'baseline_on')
   
   to_keep_indices = is.na(match(vars_names_in, vars_to_excl))
   vars_to_normalize = vars_names_in[to_keep_indices]
@@ -98,7 +100,10 @@ normalize.PLR.reduced = function(df, config_path,
   df$baseline_mean = baseline_vector_out
   
   # finally correct the error based on just the error_fractional?
-  df$error = df$error_fractional * df$pupil
+  if (length(df$error_fractional) != 0) {
+    df$error = df$error_fractional * df$pupil  
+  }
+  
   
   return(df)
   

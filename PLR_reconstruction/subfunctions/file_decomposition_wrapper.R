@@ -1,5 +1,6 @@
 file.decomposition.wrapper = function(filename_path, data_path_out, param, 
-                                      pupil_col, debug = FALSE) {
+                                      pupil_col, debug = FALSE, 
+                                      dataset_string = 'none', time_col = 'time_onsetZero') {
 
     # Check input
     just_filename = tail(strsplit(filename_path, .Platform$file.sep)[[1]], 1)
@@ -11,7 +12,7 @@ file.decomposition.wrapper = function(filename_path, data_path_out, param,
     
     # Easier variable names
     pupilField = pupil_col
-    timeField = 'time_onsetZero'
+    timeField = time_col
     t = df_in[[timeField]]
     y = df_in[[pupilField]]
     error = df_in$error * df_in$error_fractional
@@ -54,7 +55,7 @@ file.decomposition.wrapper = function(filename_path, data_path_out, param,
     # Actual computation
     decomposed = decomp.EMD.per.subject(t, y, 
                                         filecode, method_name, 
-                                        param, debug = FALSE)
+                                        param, debug = FALSE, dataset_string)
     
     # Post process for output
     no_of_imfs_saved = dim(decomposed$imf)[2]

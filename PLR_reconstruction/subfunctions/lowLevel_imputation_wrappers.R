@@ -15,7 +15,8 @@ imp.amelia.wrapper = function(pupil_df, t, y, error_frac, weights_norm, filecode
   
 }
 
-imp.imputeTS.wrapper = function(pupil_df, t, y, error_frac, weights_norm, filecodes, method_name, param_imp = list(), 
+imp.imputeTS.wrapper = function(pupil_df, t, y, error_frac, weights_norm, filecodes, 
+                                method_name = 'kalman', param_imp = list(), 
                                 debugON = FALSE, verbose = FALSE)  {
   
   # imputeTS offers 18 different methods for imputing univariate time series

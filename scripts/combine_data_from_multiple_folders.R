@@ -221,15 +221,26 @@ combine.data.from.multiple.folders = function(path_main = NA,
     
 }
 
-recheck.normalization = function(df_out, i, filecode) {
+recheck.normalization = function(df_out, i, filecode, indices = NA, baseline_in = NA,
+                                 dataset = 'SERI') {
   
   # TODO!
   # Use now hard-coded normalization period
-  t = c(-5, 0)
-  i1 = which.min(abs(df_out$time_onsetZero - t[1]))
-  i2 = which.min(abs(df_out$time_onsetZero - t[2]))
+  if (is.na(indices[1])) {
+    t = c(-5, 0)
+    i1 = which.min(abs(df_out$time_onsetZero - t[1]))
+    i2 = which.min(abs(df_out$time_onsetZero - t[2]))
+  } else {
+    i1 = indices[1]
+    i2 = indices[2]
+  }
   
-  baseline_in = df_out$baseline[1]
+  if (is.na(baseline_in)) {
+    baseline_in = df_out$baseline[1]  
+  } else {
+    
+  }
+  
   baseline_out = median(df_out$pupil[i1:i2])
   
   if (length(baseline_out) == 0) {
@@ -246,8 +257,9 @@ recheck.normalization = function(df_out, i, filecode) {
                         'pupil_imputeTS_kalman_StructTS',
                         'pupil_StructTS_iter', 'pupil_toBeImputed', 
                         'missForest', 'denoised',
-                        'noiseNorm', 'noiseNonNorm',
-                        'base', 'loFreq', 'hiFreq')
+                        'noiseNorm', 'noiseNonNorm', 'noise',
+                        'base', 'loFreq', 'hiFreq',
+                        'loess_cpt', 'cpt_meanvar')
   
   to_normalize_ind = col_names %in% vars_to_normalize
   col_names_to_normalize = col_names[to_normalize_ind]
@@ -256,7 +268,7 @@ recheck.normalization = function(df_out, i, filecode) {
   
     # cat('Baseline now = ', round(baseline_out, digits=2), '! Something wrong now! Renormalizing')
     
-    renormalized = renormalize.value(baseline_out, baseline_in, vector = df_out$pupil, i1 = i1, i2 = i2)
+    renormalized = renormalize.value(baseline_out, baseline_in, vector = df_out$pupil, i1 = i1, i2 = i2, dataset = dataset)
       df_out$pupil = renormalized[[1]]
       df_out$baseline = renormalized[[2]]
       df_out$baseline_median = df_out$baseline
@@ -281,7 +293,7 @@ recheck.normalization = function(df_out, i, filecode) {
       
       renormalized = renormalize.value(baseline_out, baseline_in, 
                                        vector = df_out[[col_names_to_normalize[c]]], 
-                                       i1 = i1, i2 = i2)
+                                       i1 = i1, i2 = i2, dataset = dataset)
       
       df_out[[col_names_to_normalize[c]]] = renormalized[[1]]
     }
@@ -292,7 +304,7 @@ recheck.normalization = function(df_out, i, filecode) {
   
 }
 
-renormalize.value = function(baseline_out, baseline_in, vector, i1, i2) {
+renormalize.value = function(baseline_out, baseline_in, vector, i1, i2, dataset = 'SERI') {
   
   vector_in_raw = vector*baseline_in/100 + baseline_in
   
@@ -305,6 +317,11 @@ renormalize.value = function(baseline_out, baseline_in, vector, i1, i2) {
   
   # to percentage
   vector = vector * -100  
+  
+  if (identical(dataset, 'SERI_2017')) {
+    vector = vector * 100  
+  }
+  
   
   return(list(vector, baseline_again, baseline_mean))
     
