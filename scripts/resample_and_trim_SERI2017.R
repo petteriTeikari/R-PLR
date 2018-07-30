@@ -1,4 +1,4 @@
-resample.and.trim.SERI2017 = function(path_in = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/SERI_2017_final') {
+resample.and.trim.SERI2017 = function(path_in = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/SERI_2017_long_final') {
   
   # INIT --------------------------------------------------------------------
   
@@ -8,7 +8,7 @@ resample.and.trim.SERI2017 = function(path_in = '/home/petteri/Dropbox/LABs/SERI
     paths = list()
     paths[['RPLR']][['base']] = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR'
     
-    path_out = file.path(path_in, '..', 'SERI_2017_final_resampled', fsep = .Platform$file.sep)
+    path_out = file.path(path_in, '..', 'SERI_2017_long_final_resampled', fsep = .Platform$file.sep)
     path_out_ML = file.path(path_out, 'machineLearning', fsep = .Platform$file.sep)
   
     files = list.files(path=path_in, pattern='*.csv', recursive=FALSE, full.names = TRUE)
@@ -48,7 +48,8 @@ resample.and.trim.SERI2017 = function(path_in = '/home/petteri/Dropbox/LABs/SERI
     
     # outlier removal based on short postlight durations
     postlight_duration = length(data_in$time) - offset_indices
-    outlier_indices = postlight_duration < 700
+    outlier_indices = postlight_duration < 700 # short
+    outlier_indices = postlight_duration < 480 # short
     files = files[!outlier_indices]
     onset_indices = onset_indices[!outlier_indices]
     offset_indices = offset_indices[!outlier_indices]
@@ -139,9 +140,9 @@ resample.and.trim.SERI2017 = function(path_in = '/home/petteri/Dropbox/LABs/SERI
         data_diff = diff.of.dataframes(data_out, data_out_prev)
         filename_diff = paste0(toupper(code_prev), '_', 'diff', '.csv')
         
-        # export.pupil.dataframe.toDisk(data_out, filename_out, path_out, 'resampled')
-        # export.pupil.dataframe.toDisk(data_out_prev, filename_prev, path_out, 'resampled')
-        # export.pupil.dataframe.toDisk(data_diff, filename_diff, path_out, 'resampled')
+        export.pupil.dataframe.toDisk(data_out, filename_out, path_out, 'resampled')
+        export.pupil.dataframe.toDisk(data_out_prev, filename_prev, path_out, 'resampled')
+        export.pupil.dataframe.toDisk(data_diff, filename_diff, path_out, 'resampled')
         
         # save the diagnosis
         index_code = which(toupper(diagnosis$subject_code) %in% toupper(code_in))

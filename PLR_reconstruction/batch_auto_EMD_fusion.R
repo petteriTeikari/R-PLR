@@ -103,6 +103,8 @@ combine.processing = function(df_in, df_EMD, df_EMD_fusion, path) {
     df_out[['hiFreq']] = loess_decomp[[3]]
     df_out[['noise']] = noise_sum
     
+    df_out[['pupil']] = df_out[['denoised']]
+    
   change_detect_augmentation = change.detect.augmentation(t = df_out[['time']], y = df_out[['denoised']])
     df_out[['cpt_meanvar']] = change_detect_augmentation[[1]]
     df_out[['loess_cpt']] = change_detect_augmentation[[2]]

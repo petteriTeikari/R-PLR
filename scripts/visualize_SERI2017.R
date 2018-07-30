@@ -1,4 +1,4 @@
-resample.and.trim.SERI2017 = function(path_in = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/SERI_2017_final_resampled',
+resample.and.trim.SERI2017 = function(path_in = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/SERI_2017_long_final_resampled',
                                       pupil_col = 'pupil',
                                       simplify = TRUE) {
   
@@ -19,6 +19,9 @@ resample.and.trim.SERI2017 = function(path_in = '/home/petteri/Dropbox/LABs/SERI
     
     diagnosis = read.table(list.files(path=path_in, pattern='*.txt', recursive=FALSE, full.names = TRUE),
                          stringsAsFactors = FALSE, sep = '\t', header = TRUE)
+    
+    # check that files and codes match
+    diagnosis = check.files.and.diagnosis.match(files, diagnosis)
   
   # IMPORT FILES ------------------------------------------------------------  
     
@@ -117,7 +120,7 @@ resample.and.trim.SERI2017 = function(path_in = '/home/petteri/Dropbox/LABs/SERI
 }
 
 plot.per.condition = function(p, i=1, group = 'blue', stats, time_vector) {
-  
+
   df = melt(stats, level = 1)
   colnames(df) = c('Pupil', 'Diagnosis', 'Stat')
   df$Stat[df$Stat == 1] = 'Mean'
@@ -188,7 +191,7 @@ stats.of.melted = function(mat_in, diagnoses, time_vector) {
    max_constriction_out = list()
    
    i1 = which.min(abs(time_vector - 0))
-   i2 = which.min(abs(time_vector - 25))
+   i2 = which.min(abs(time_vector - round(0.99*tail(time_vector,1))))
    max_constr_indices = c(i1, i2)
    
    for (i in 1 : length(uniq_diagnoses)) {
@@ -198,13 +201,17 @@ stats.of.melted = function(mat_in, diagnoses, time_vector) {
      
      matrix_per_diagnosis = mat_in[,indices]
      
+     max_constriction_out[[uniq_diagnoses[i]]] =
+       apply(matrix_per_diagnosis[i1:i2,], 2, min, na.rm = TRUE)
+     
+     # check first for outliers
+     # valid_indices = check.for.outliers(vector_per_diagnosis = max_constriction_out[[uniq_diagnoses[i]]])
+     # matrix_per_diagnosis = matrix_per_diagnosis[,valid_indices]
+     
      mean_out[[uniq_diagnoses[i]]] = rowMeans(matrix_per_diagnosis, na.rm = TRUE)
      SD_out[[uniq_diagnoses[i]]] = apply(matrix_per_diagnosis, 1, sd, na.rm = TRUE)
      
      n_out[[uniq_diagnoses[i]]] = dim(matrix_per_diagnosis)[2]
-     
-     max_constriction_out[[uniq_diagnoses[i]]] =
-       apply(matrix_per_diagnosis[i1:i2,], 2, min, na.rm = TRUE)
      
    }
    
@@ -214,3 +221,29 @@ stats.of.melted = function(mat_in, diagnoses, time_vector) {
  }
 
  
+check.files.and.diagnosis.match = function(files, diagnosis) {
+ 
+  source('~/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/scripts/SERI2017_re_postprocess.R') 
+  unique_codes = unique(get.subjectcodes.of.listing(files, field_out = 'subjectcode'))
+  
+  codes_diagnoses = unique(toupper(diagnosis$subject_code))
+  
+  missing = !(codes_diagnoses %in% unique_codes)
+  which_missing = codes_diagnoses[which(missing)] # 013C
+  found = !missing
+  
+  diagnosis = diagnosis[found,]
+  return(diagnosis)
+  
+}
+
+
+check.for.outliers = function(vector_per_diagnosis) {
+  
+  # use the max constriction for checking the outlier indices
+  sd_of_values = sd(vector_per_diagnosis)
+  outlier_ind = !(abs(vector_per_diagnosis) > sd_of_values*1.96)
+  
+  return(outlier_ind)
+  
+}
