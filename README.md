@@ -161,6 +161,26 @@ Finally compute the hand-crafted features such as max constriction, slope, PIPR 
 
 `batch.PLR.analyze.reconstructions()`
 
+### Possible problem! You need to get the `rgl` package working
+
+#### Linux
+
+`Configure: error: missing required header GL/gl.h`
+`ERROR: configuration failed for package ‘rgl’ `
+
+Solution:
+
+`sudo apt-get install libglu1-mesa-dev`
+
+#### Mac
+
+Solution: https://stackoverflow.com/questions/33634871/installing-rgl-package-in-r-mac-osx-el-captian
+Needs the `XQuartz` (on OSX), https://cran.r-project.org/web/packages/rgl/index.html
+
+#### Windows
+
+?
+
 ## THE END
 
 You should get the following output folders from intermediate steps (as `.csv` files)
