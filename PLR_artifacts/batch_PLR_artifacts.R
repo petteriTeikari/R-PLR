@@ -19,7 +19,7 @@ batch.PLR.artifacts = function(data_path = NA, RPLR_artifacts_path = NA,
   IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
   
   # Libraries needed
-  library(forecast)
+  # library(forecast)
   # install.packages("forecast")
   library(ggplot2)
   # library(shiny)

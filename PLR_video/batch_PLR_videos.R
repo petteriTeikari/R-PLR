@@ -1,4 +1,4 @@
-batch.PLR.videos = function(data_path = NA, RPLR_video_path = NA,
+batch.PLR.videos = function(data_path = NA, RPLR_video_path = NA, out_path = NA,
                             parameters, process_only_unprocessed = FALSE,
                             path_check_for_done, RPLR_paths) {
   
@@ -13,7 +13,18 @@ batch.PLR.videos = function(data_path = NA, RPLR_video_path = NA,
     } else {
       script.dir = RPLR_video_path    
     }
+   
+    if (is.na(out_path)) {
+      main_data_path_out = file.path(data_path, '..', 'DATA_OUT', fsep = .Platform$file.sep)
+    } else {
+      main_data_path_out = out_path
+    }
     
+    if (dir.exists(main_data_path_out) == FALSE) {
+      cat('Creating the directory for DATA output')
+      dir.create(main_data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+    }
+   
     source_path = file.path(script.dir, 'subfunctions', fsep = .Platform$file.sep)
     IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
   
@@ -25,16 +36,10 @@ batch.PLR.videos = function(data_path = NA, RPLR_video_path = NA,
     source(file.path(source_path, 'process_videoFile.R', fsep = .Platform$file.sep))
     
     # Debugging the "SERI syntax"
+    # TODO! if you have other syntax, change this!
     pattern_to_find = "*_BR.csv"
    
-    main_data_path_out = file.path(data_path, '..', 'DATA_OUT', fsep = .Platform$file.sep)
-    if (dir.exists(main_data_path_out) == FALSE) {
-      cat('Creating the directory for DATA output')
-      dir.create(main_data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
-    }
-    
     video_data_path_out = file.path(main_data_path_out, 'VIDEO', fsep = .Platform$file.sep)
-    
     if (dir.exists(video_data_path_out) == FALSE) {
       cat('Creating the directory for DATA output')
       dir.create(video_data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")

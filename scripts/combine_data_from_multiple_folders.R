@@ -3,12 +3,10 @@ combine.data.from.multiple.folders = function(path_main = NA,
                                               RPLR_scripts_path = NA,
                                               subfolder_paths = c('imputation_final',
                                                                    'recon_EMD',
-                                                                   'recon_EMD_subcomp_fusion',
                                                                    file.path('recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep)), 
                                               patterns = c('*.csv',
                                                            '*.csv',
-                                                           '*.csv',
-                                                           '*_fusion.csv'),
+                                                           '*_signals.csv'),
                                               check_for_matching_cols = FALSE) {
 
   
@@ -60,7 +58,6 @@ combine.data.from.multiple.folders = function(path_main = NA,
       
       # do file listing again
       file_listing[[colname]] = list.files(path=fullpath, pattern=patterns[i], recursive=FALSE, full.names = TRUE)
-      
       no_of_files[i] = length(file_listing[[colname]])
     }
     

@@ -31,6 +31,7 @@ file.fractal.wrapper = function(filename_path, data_fractal_out, param, debug = 
     }
     
     # DFA, not the most useful in general
+    # 'rgl' library is so tricky
     DFA_df = list(fractal.DFA.wrapper(t, y))
     
     # MMA, Multiscale Multifractal Analysis

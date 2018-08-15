@@ -22,11 +22,12 @@ batch.PLR.analyze.reconstructions = function(data_path =  '/home/petteri/Dropbox
     library(zoo) # for interpolating the NAs away
   
     # install.packages("nonlinearTseries")
-    library(nonlinearTseries) # for DFA
+    # library(nonlinearTseries) # for DFA
+    # TODO! this library depends on 'rgl' library which is a bit tricky in Mac
+    # https://stackoverflow.com/questions/33634871/installing-rgl-package-in-r-mac-osx-el-captian
   
     # install.packages("MFDFA")
     library(MFDFA)
-  
     library(EMD)
     library(hht)
     
@@ -126,11 +127,11 @@ batch.PLR.analyze.reconstructions = function(data_path =  '/home/petteri/Dropbox
   # PROCESS ALL FILE(S) OF FOLDER ---------------------------------------------
   
   
-    features = mclapply(files_to_process, function(files_to_process){
+    features = lapply(files_to_process, function(files_to_process){
       process.single.PLR.for.analysis(files_to_process, data_path_out, data_norm_path_out, data_images_path_out, 
                                       data_fractal_out, data_timefreq_out, config_path, 
                                       normalize_on, normalize_method, normalize_indiv_colors)
-    },  mc.cores = no_of_cores_to_use) 
+    }) #,  mc.cores = no_of_cores_to_use) 
     # ~4h40min at home AMD (1-core)
     
 }

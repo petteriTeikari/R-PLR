@@ -99,6 +99,12 @@ data.imputation.wrapper = function(pupil_df, t, y, error_frac, weights_norm, fil
       } else if (grepl('imputeTS', method_name)) {
         imp_list[[method_name]] = imp.imputeTS.wrapper(pupil_df, t, y, error_frac, weights_norm, filecodes, method_name, param_imp)
         
+      } else if (grepl('none', method_name)) {
+        cat('Skipping imputation at this point')
+        imp_list[[method_name]][['pupil']] = y
+        imp_list[[method_name]][['error']] = error_frac
+        imp_list[[method_name]][['weights']] = weights_norm
+        
       } else {
         warning('You have typo for imputation method? "', param_imp[['methods']][i], '" not implemented yet')
         

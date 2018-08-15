@@ -41,7 +41,6 @@ batch.PLR.resample = function(data_path = NA, RPLR_recon_path = NA,
   files_to_process = get.files.for.reconstruction(data_path, pattern_to_find)
   
   # TODO! data_path_alternative
-  
   if (process_only_unprocessed) {
     indices_undone = check.for.done.filecodes(files_to_process, path_check_for_done)
     files_to_process = files_to_process[indices_undone]

@@ -3,9 +3,13 @@ clean.and.reconstruct.PLR = function() {
   # Define computer-specific paths
   # TODO! Make more adaptive
   paths = list()
+  
+  # TODO! Read this location automagically
   paths[['RPLR']][['base']] = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR'
-  paths[['data_in']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA'
-  paths[['data_out']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT'
+  # paths[['data_in']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA'
+  # paths[['data_out']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT'
+  paths[['data_in']][['base']] = file.path(paths[['RPLR']][['base']], '..', 'TEST_IN', fsep = .Platform$file.sep)
+  paths[['data_out']][['base']] = file.path(paths[['RPLR']][['base']], '..', 'TEST_OUT', fsep = .Platform$file.sep) 
   
   # Init scripts
   source(file.path(paths[['RPLR']][['base']], 'clean_and_reconstruct_all_PLR.R', fsep = .Platform$file.sep))
@@ -19,7 +23,8 @@ clean.and.reconstruct.PLR = function() {
   
   # Import the _BR files
   batch.PLR.videos(data_path = paths[['data_in']][['video']], 
-                   RPLR_video_path = paths[['video']],
+                   RPLR_video_path = paths[['video']], 
+                   out_path = paths[['data_out']][['base']],
                    parameters = param[['video']],
                    RPLR_paths = paths[['RPLR']],
                    process_only_unprocessed = TRUE, # no need to re-process all 400 files
@@ -34,6 +39,7 @@ clean.and.reconstruct.PLR = function() {
                        path_check_for_done = paths[['data_out']][['reconstructed']])
       
   warning('Inspect the outlier now manually, or change the path from next block if you do not want to do it')
+  warning('You NEED TO MANUALLY RUN ""')
   
   # Resample to same length
   batch.PLR.resample(data_path = paths[['data_in']][['resampling_corr']], 
@@ -55,7 +61,7 @@ clean.and.reconstruct.PLR = function() {
                             path_check_for_done = paths[['data_out']][['reconstructed']], 
                             pupil_col = 'pupil',
                             miss_forest_parallelize = 'no',
-                            combine_with_database = TRUE,
+                            combine_with_database = FALSE,
                             database_path = paths[['data_out']][['reconstructed']])
   
   warning('Inspect the imputation now manually, or change the path from next block if you do not want to do it')
@@ -71,6 +77,7 @@ clean.and.reconstruct.PLR = function() {
                            process_only_unprocessed = TRUE, # no need to re-process all 400 files
                            path_check_for_done = paths[['data_out']][['reconstructed']], 
                            pupil_col = 'pupil',
+                           miss_forest_parallelize = 'no',
                            combine_with_database = FALSE,
                            database_path = paths[['data_out']][['reconstructed']],
                            iterate_imputation = TRUE)
@@ -89,13 +96,13 @@ clean.and.reconstruct.PLR = function() {
   # Now we have the results a bit scattered around and we cant to combine them
   # NOTE! Re-normalizing all the different pupil size columns inside of this
   combine.data.from.multiple.folders(path_main = paths[['data_out']][['base']], 
-                                      RPLR_scripts_path = paths[['RPLR']][['scripts']],
-                                      subfolder_paths = c('imputation_final',
-                                                          'recon_EMD',
-                                                          file.path('recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep)), 
+                                     RPLR_scripts_path = paths[['RPLR']][['scripts']],
+                                     subfolder_paths = c('imputation_final',
+                                                         file.path('recon_EMD', 'DONE', fsep = .Platform$file.sep),
+                                                         file.path('recon_EMD', 'IMF_fusion', fsep = .Platform$file.sep)), 
                                      patterns = c('*.csv',
                                                   '*.csv',
-                                                  '*.csv'))
+                                                  '*_signals.csv'))
   
   # Do some semi-intelligent decompositions for machine learning data augmentation purposes
   # Computes as well 1st and 2nd derivatives (i.e. velocity and acceleration) from the smoothed PLRs
@@ -195,6 +202,10 @@ init.paths.and.functions = function(paths) {
 }
 
 import.and.install.libraries = function() {
+  
+  # TODO!
+  # Put ALL THE LIBRARIES needed here
+  # https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
   
   # install.packages("data.table")
   library(data.table)

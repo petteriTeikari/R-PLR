@@ -33,7 +33,8 @@ single.file.reconstruction = function(t, y, error_frac, filecode,
     
   # RECONSTRUCTION PARAMETERS ---------------------------------------------------------------- 
     
-    param[['imputation']][['methods']] = c('imputeTS_kalman_StructTS')
+    # param[['imputation']][['methods']] = c('imputeTS_kalman_StructTS') # requires working CUDA?
+    param[['imputation']][['methods']] = c('none')
     param[['denoising']][['methods']] = c('wmtsa_s8')
     param[['decomposition']][['methods']] = c('CEEMD')
     param[['joint']][['methods']] = c('1')
