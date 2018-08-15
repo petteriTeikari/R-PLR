@@ -27,7 +27,7 @@ R packages tend to go to [Journal of Statistical Software](https://github.com/pe
 
 In theory the PLR files could be analyzed end-to-end from you putting the _"BR"_ to the Dropbox folder and then running that script:
 
-`https://github.com/petteriTeikari/R-PLR/blob/master/clean_and_reconstruct_all_PLR.R`
+**`https://github.com/petteriTeikari/R-PLR/blob/master/clean_and_reconstruct_all_PLR.R`**
 
 You need to tweak the 3 paths manually as they now refer to my paths:
 
@@ -35,6 +35,18 @@ You need to tweak the 3 paths manually as they now refer to my paths:
 paths[['RPLR']][['base']] = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR'
 paths[['data_in']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA'
 paths[['data_out']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT'
+```
+## Use the TEST DATA
+
+If you do not access to full "database" (folder containing all the recording folders), extract the `test_PLR_data_180815.zip` from the folder `test_data` for example to folder `../TEST_IN` (can be whatever location, but now the initial path is set to this making your life slightly easier)
+
+![Location](https://github.com/petteriTeikari/R-PLR/blob/master/test_data/test_data.png "Location")
+
+Your data folders can then be made relative to the base folder (only need to change one directory)
+
+```R
+paths[['data_in']][['base']] = file.path(paths[['RPLR']][['base']], '..', 'TEST_IN', fsep = .Platform$file.sep)
+paths[['data_out']][['base']] = file.path(paths[['RPLR']][['base']], '..', 'TEST_OUT', fsep = .Platform$file.sep) 
 ```
 
 ## 1) Import the traces
