@@ -29,6 +29,14 @@ In theory the PLR files could be analyzed end-to-end from you putting the _"BR"_
 
 `https://github.com/petteriTeikari/R-PLR/blob/master/clean_and_reconstruct_all_PLR.R`
 
+You need to tweak the 3 paths manually as they now refer to my paths:
+
+```R
+paths[['RPLR']][['base']] = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR'
+paths[['data_in']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA'
+paths[['data_out']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT'
+```
+
 ## 1) Import the traces
 
 Basically just reads in the results and get rid of bunch of redundant R,G,B columns
