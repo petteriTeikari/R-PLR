@@ -49,6 +49,8 @@ paths[['data_in']][['base']] = file.path(paths[['RPLR']][['base']], '..', 'TEST_
 paths[['data_out']][['base']] = file.path(paths[['RPLR']][['base']], '..', 'TEST_OUT', fsep = .Platform$file.sep) 
 ```
 
+And make sure that the file `Master_File_De-Identified_Copy_For_Petteri.xlsx` is found from the `../` (one folder down) in relation to the `TEST_IN` 
+
 ## 1) Import the traces
 
 Basically just reads in the results and get rid of bunch of redundant R,G,B columns
@@ -80,6 +82,8 @@ Have a look of the videos.
 
 1st column sets the ROI Zoom, 2nd column either includes red points, or excludes blue points, 3rd column could be updated dynamically with the line connection the points (TODO!)
 
+Basically do your corrections, or push directly `Save to Disk` if there are no errors, and then push the `Reload` (upper panel). The disk saving automatically moves the processed away from input, and the Reload just reads in the next undone file.  
+
 ## 3) Resample to the same time vector
 
 Not actually interpolating/resampling, just re-arranging the samples to common time vector with bunch of NAs still here
@@ -98,6 +102,23 @@ Again if the imputation have hallucinated weird stuff especially for long durati
 
 Run `R-PLR/apps_Shiny/inspect_outliers/server.R` with the `mode` set to `imputation`
 
+#### IDEA
+
+Exactly the same as before with the outlier inspection. Now again, you need to check the path, **line 22**
+
+```R
+} else if (identical(mode, 'imputation')) {
+path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/TEST_OUT/outlier_free/imputation_final'
+```
+
+, and **uncomment** the following line
+
+```R
+mode = 'imputation'
+```
+Basically do your corrections, or push directly `Save to Disk` if there are no errors, and then push the `Reload` (upper panel). The disk saving automatically moves the processed away from input, and the Reload just reads in the next undone file.  
+
+
 ## 4c) Re-impute the values after manual check
 
 `batch.AnalyzeAndReImpute()`
@@ -108,11 +129,19 @@ This decomposition is good for denoising, and then the loFreq / hiFreq decomposi
 
 `batch.EMD.decomposition()`
 
+**NOTE!** This is quite heavy computation and requires some time. Each file can be computed using individual core/thread so you save some time if you process multiple files.
+
 ## 5b) Again check for how to combine the IMFs
 
-TODO! This should be automagicated, should be rather simple, rather than wasting someone's time for this
+TODO! This should be automagicated (do a simple Random Forest classifier or something), should be rather simple, rather than wasting someone's time for this.
 
 Run `R-PLR/apps_Shiny/inspect_EMD/server.R`
+
+**Note** that now the decomposition label selection is quite arbitrary, see for example:
+
+![EMD Example](https://github.com/petteriTeikari/R-PLR/blob/master/documentation/images/example_EMD.png "EMD Example")
+
+**NOTE2** The signals on the right do not get updated dynamically (TODO!), And the normally distributed and non-normally distributed noise separation is done automatically. And in practice the denoised signal is the input signal - (all the noise components), and the low frequency, high frequency and base are used for data augmentation purposes with machine learning.
 
 ## 6) Combine different files together
 
