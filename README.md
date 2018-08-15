@@ -175,6 +175,7 @@ Solution:
 #### Mac
 
 Solution: https://stackoverflow.com/questions/33634871/installing-rgl-package-in-r-mac-osx-el-captian
+
 Needs the `XQuartz` (on OSX), https://cran.r-project.org/web/packages/rgl/index.html
 
 #### Windows
