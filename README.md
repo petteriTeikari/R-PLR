@@ -63,7 +63,22 @@ Not the most intelligent algorithm at the moment
 
 **Make sure that the machine learning classifier gets only the good quality "ground truth" traces** The crappy ones without cleaning are easy to mix later on 
 
+**TODO!** You could try to read all the paths from some config file as now you need to again define the path manually (line 17):
+
+```R
+path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/TEST_OUT/outlier_free'
+```
+
 Run `R-PLR/apps_Shiny/inspect_outliers/server.R`
+
+#### Example walk-throughs
+
+Have a look of the videos.
+
+* SERI 2018 paradigm: https://youtu.be/okPJ8fn_17Q
+* SERI 2017 dataset and paradigm: https://youtu.be/yVGh8p-3Ko0
+
+1st column sets the ROI Zoom, 2nd column either includes red points, or excludes blue points, 3rd column could be updated dynamically with the line connection the points (TODO!)
 
 ## 3) Resample to the same time vector
 
