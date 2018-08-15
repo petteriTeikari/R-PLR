@@ -160,3 +160,27 @@ Now the results are scattered to different folders and we combine them to have o
 Finally compute the hand-crafted features such as max constriction, slope, PIPR along with the Hilbert spectrum (time-frequency from EMD) and the fractal features.
 
 `batch.PLR.analyze.reconstructions()`
+
+## THE END
+
+You should get the following output folders from intermediate steps (as `.csv` files)
+
+![OUTPUT Example](https://github.com/petteriTeikari/R-PLR/blob/master/test_data/test_data_OUT.png "OUTPUT Example")
+
+And you can check out the contents of the `TEST_OUT_180815.zip`
+
+**NOTE!** Now you can probably notice that the `AD01` was not processed at all as the `PLR_video` part had an input pattern for `PLRxxxx`, so you either has to rename the input folders (EASIER) or modify the code to accommodate all these variations in input files (MORE TIME-CONSUMING)
+
+**NOTE2** You probably noticed that there are a lot of steps that could have been optimized more to make your life less annoying, like not having to change all the paths each time you run the script on another computer.
+
+## UPGRADE
+
+Also there are additional pains involved in making this cross-platform (Windows/Linux/Mac) and forcing clinicians to install packages that can be a bit tricky to get working (namely the Mac experience).
+
+### 1) SSH Option
+You could put this to one lab desktop and run everything over a SSH (https://cran.r-project.org/web/packages/ssh/vignettes/intro.html) 
+
+### 2) Shiny Web App
+or at some point even deploy this as web application (would be debugged a lot better than the current version, https://shiny.rstudio.com/articles/deployment-web.html)
+
+
