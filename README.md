@@ -51,6 +51,11 @@ paths[['data_out']][['base']] = file.path(paths[['RPLR']][['base']], '..', 'TEST
 
 And make sure that the file `Master_File_De-Identified_Copy_For_Petteri.xlsx` is found from the `../` (one folder down) in relation to the `TEST_IN` 
 
+### How to contribute to the development
+
+The required packages are not at the moment collected under one subfunction (i.e. `import.and.install.libraries = function()` in https://github.com/petteriTeikari/R-PLR/blob/master/clean_and_reconstruct_all_PLR.R) so you could collect the packages that you needed to install to make this repo work and provide that?
+
+
 ## 1) Import the traces
 
 Basically just reads in the results and get rid of bunch of redundant R,G,B columns
