@@ -29,6 +29,8 @@ In theory the PLR files could be analyzed end-to-end from you putting the _"BR"_
 
 **`https://github.com/petteriTeikari/R-PLR/blob/master/clean_and_reconstruct_all_PLR.R`**
 
+You can go line-by-line with `Run Selected Line(s) Ctrl+Enter`
+
 You need to tweak the 3 paths manually as they now refer to my paths:
 
 ```R
