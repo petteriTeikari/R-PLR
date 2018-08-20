@@ -29,6 +29,8 @@ In theory the PLR files could be analyzed end-to-end from you putting the _"BR"_
 
 **`https://github.com/petteriTeikari/R-PLR/blob/master/clean_and_reconstruct_all_PLR.R`**
 
+You can go line-by-line with `Run Selected Line(s) Ctrl+Enter`, you might end up having problems with `line 18`: `import.and.install.libraries(paths)` which tries to check if you have all the libraries installed and auto-install them. 
+
 You need to tweak the 3 paths manually as they now refer to my paths:
 
 ```R
@@ -50,6 +52,11 @@ paths[['data_out']][['base']] = file.path(paths[['RPLR']][['base']], '..', 'TEST
 ```
 
 And make sure that the file `Master_File_De-Identified_Copy_For_Petteri.xlsx` is found from the `../` (one folder down) in relation to the `TEST_IN` 
+
+### How to contribute to the development
+
+The required packages are not at the moment collected under one subfunction (i.e. `import.and.install.libraries = function()` in https://github.com/petteriTeikari/R-PLR/blob/master/clean_and_reconstruct_all_PLR.R) so you could collect the packages that you needed to install to make this repo work and provide that?
+
 
 ## 1) Import the traces
 
@@ -160,6 +167,27 @@ Now the results are scattered to different folders and we combine them to have o
 Finally compute the hand-crafted features such as max constriction, slope, PIPR along with the Hilbert spectrum (time-frequency from EMD) and the fractal features.
 
 `batch.PLR.analyze.reconstructions()`
+
+### Possible problem! You need to get the `rgl` package working
+
+#### Linux
+
+`Configure: error: missing required header GL/gl.h`
+`ERROR: configuration failed for package ‘rgl’ `
+
+Solution:
+
+`sudo apt-get install libglu1-mesa-dev`
+
+#### Mac
+
+Solution: https://stackoverflow.com/questions/33634871/installing-rgl-package-in-r-mac-osx-el-captian
+
+Needs the `XQuartz` (on OSX), https://cran.r-project.org/web/packages/rgl/index.html
+
+#### Windows
+
+?
 
 ## THE END
 
