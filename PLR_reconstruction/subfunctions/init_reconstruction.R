@@ -1,15 +1,15 @@
 # INIT SCRIPT (i.e. HIDE THE BORING STUFF)
 init.reconstruction = function(script.dir, data_path, source_path, IO_path) {
   
-  # Libraries needed
-  library(ggplot2)
-  library(grid)
-  library(gridExtra)
-  library(reshape2)
+  # Plotting libraries
+  if (!require("ggplot2")) install.packages("ggplot2"); library("ggplot2")
+  if (!require("grid")) install.packages("grid"); library("grid")
+  if (!require("gridExtra")) install.packages("gridExtra"); library("gridExtra")
+  if (!require("reshape2")) install.packages("reshape2"); library("reshape2")
   
   # https://stackoverflow.com/questions/7049272/importing-excel-files-into-r-xlsx-or-xls
   # install.packages("readxl") # CRAN version
-  library(readxl)
+  if (!require("readxl")) install.packages("readxl"); library("readxl")
   
   # IMPUTATION
   # install.packages("Amelia")
@@ -29,24 +29,19 @@ init.reconstruction = function(script.dir, data_path, source_path, IO_path) {
   # install.packages("wmtsa")
   
   # install.packages("ifultools")
-  library(wmtsa)
-  library(ifultools)
-  library(Rwave)
-  # install.packages("Rwave")
-  
+  if (!require("wmtsa")) install.packages("wmtsa"); library("wmtsa")
+  if (!require("ifultools")) install.packages("ifultools"); library("ifultools")
+  if (!require("Rwave")) install.packages("Rwave"); library("Rwave")
+
   
   # IMPUTATION
-  # install.packages("missForest")
-  library(missForest)
-  # install.packages("doParallel")
-  library(doParallel)  
+  if (!require("missForest")) install.packages("missForest"); library("missForest")
+  if (!require("doParallel")) install.packages("doParallel"); library("doParallel")
   
   
   # DECOMPOSITION
-  # install.packages("EMD")
-  library(EMD)
-  # install.packages("hht")
-  library(hht)
+  if (!require("EMD")) install.packages("EMD"); library("EMD")
+  if (!require("hht")) install.packages("hht"); library("hht")
   
   # SOURCE SUBFUNCTIONS
   source(file.path(source_path, 'single_file_reconstruction.R', fsep = .Platform$file.sep))

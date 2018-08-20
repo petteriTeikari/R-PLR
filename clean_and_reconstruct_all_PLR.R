@@ -15,7 +15,7 @@ clean.and.reconstruct.PLR = function() {
   source(file.path(paths[['RPLR']][['base']], 'clean_and_reconstruct_all_PLR.R', fsep = .Platform$file.sep))
   paths = init.paths.and.functions(paths)
   paths = source.subfunctions(paths)
-  import.and.install.libraries()
+  import.and.install.libraries(paths)
   param = init.PLR.processing.params(paths)
 
   # TODO! Aggregate all libaries loaded with automatic installation to one file
@@ -201,15 +201,44 @@ init.paths.and.functions = function(paths) {
   
 }
 
-import.and.install.libraries = function() {
+import.and.install.libraries = function(paths) {
   
   # TODO!
   # Put ALL THE LIBRARIES needed here
   # https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
   
-  # install.packages("data.table")
-  library(data.table)
-
+  cat('Checking the LIBRARIES')
+  
+  if (!require("data.table")) install.packages("data.table"); library("data.table")
+  
+  # VIDEO
+  if (!require("ggplot2")) install.packages("ggplot2"); library("ggplot2")
+  
+  # ARTIFACTS
+  # if (!require("forecast")) install.packages("forecast"); library("forecast")
+  if (!require("changepoint")) install.packages("changepoint"); library("changepoint")
+  
+  # RECONSTRUCTION
+  subfunction_path = file.path(paths[['recon']], 'subfunctions', fsep = .Platform$file.sep)
+  source(file.path(subfunction_path, 'init_reconstruction.R', fsep = .Platform$file.sep))
+  paths_for_output = init.reconstruction(script.dir = paths[['recon']], 
+                                         data_path = paths[['data_in']][['resampling_corr']], 
+                                         source_path = subfunction_path, 
+                                         IO_path = paths[['RPLR']][['IO']]) 
+  
+  
+  # FRACTAL ANALYSIS
+  if (!require("MFDFA")) install.packages("MFDFA"); library("MFDFA")
+  if (!require("fractal")) install.packages("fractal"); library("fractal")
+  if (!require("nonlinearTseries")) install.packages("nonlinearTseries"); library("nonlinearTseries")
+    # IF configure: error: missing required header GL/gl.h
+    # ERROR: configuration failed for package ‘rgl’
+    # THEN: sudo apt-get install libglu1-mesa-dev
+    # For Apple / Mac, you need XQuartz unstalled
+  
+  # TIME-FREQ
+  
+  
   
 }
 
