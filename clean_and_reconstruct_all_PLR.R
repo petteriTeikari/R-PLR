@@ -134,6 +134,13 @@ init.paths.and.functions = function(paths) {
   
   # TODO! If you actually change these, the batch_ functions atm have
   # hard-coded variable names
+  # Debugging the "SERI syntax"
+  
+  # Create output
+  if (dir.exists(paths[['data_out']][['base']]) == FALSE) {
+    dir.create(paths[['data_out']][['base']], showWarnings = TRUE, recursive = FALSE, mode = "0777")
+    cat('Creating the directory for DATA OUTPUT\n')
+  }
   
   # Derived paths
   paths[['data_out']][['video']] = file.path(paths[['data_out']][['base']], 'VIDEO')
@@ -148,6 +155,12 @@ init.paths.and.functions = function(paths) {
   paths[['data_out']][['reconstructed']] = file.path(paths[['data_out']][['base']], 'reconstructed') 
   paths[['data_out']][['FinalOUT']] = file.path(paths[['data_out']][['base']], 'FinalOUT') 
   paths[['data_out']][['features']] = file.path(paths[['data_out']][['base']], 'PLR_feat') 
+  
+  # Create outlier_free
+  if (dir.exists(paths[['data_out']][['artifacts']]) == FALSE) {
+    dir.create(paths[['data_out']][['artifacts']], showWarnings = TRUE, recursive = FALSE, mode = "0777")
+    cat('Creating the directory for DATA OUTLIER_FREE\n')
+  }
   
   # inputs from these outputs
   paths[['data_in']][['video']] = paths[['data_in']][['base']]
@@ -207,7 +220,7 @@ import.and.install.libraries = function(paths) {
   # Put ALL THE LIBRARIES needed here
   # https://stackoverflow.com/questions/4090169/elegant-way-to-check-for-missing-packages-and-install-them
   
-  cat('Checking the LIBRARIES')
+  cat('Checking the LIBRARIES\n')
   
   if (!require("data.table")) install.packages("data.table"); library("data.table")
   
@@ -234,6 +247,8 @@ import.and.install.libraries = function(paths) {
     # IF configure: error: missing required header GL/gl.h
     # ERROR: configuration failed for package ‘rgl’
     # THEN: sudo apt-get install libglu1-mesa-dev
+    # For fresh installation, you might need these
+    # sudo apt-get install libglu1-mesa-dev libcurl4 libfreetype6-dev libcurl4-openssl-dev
     # For Apple / Mac, you need XQuartz unstalled
   
   # TIME-FREQ
