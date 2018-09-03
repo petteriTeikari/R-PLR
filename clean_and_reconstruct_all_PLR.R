@@ -5,7 +5,22 @@ clean.and.reconstruct.PLR = function() {
   paths = list()
   
   # TODO! Read this location automagically
-  paths[['RPLR']][['base']] = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR'
+  # Now this ghetto fix for small number of users
+  if (identical(toString(Sys.info()["nodename"]), "RAY-XPS" ) &&
+      identical(toString(Sys.info()["login"]), "Ray P. Najjar")) {
+    
+      paths[['RPLR']][['base']] = 'C:/Users/Ray-Najjar/Desktop/GitPLR/R-PLR'
+           
+   } else if (identical(toString(Sys.info()["nodename"]), "petteri-Server")) {
+     
+      paths[['RPLR']][['base']] = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR'
+      
+   } else {
+     
+     warning('No path defined for: ', Sys.info())
+   }
+  
+  
   # paths[['data_in']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA'
   # paths[['data_out']][['base']] = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT'
   paths[['data_in']][['base']] = file.path(paths[['RPLR']][['base']], '..', 'TEST_IN', fsep = .Platform$file.sep)
@@ -130,6 +145,9 @@ clean.and.reconstruct.PLR = function() {
 
 
 # SUBFUNCTION
+
+
+
 init.paths.and.functions = function(paths) {
   
   # TODO! If you actually change these, the batch_ functions atm have
