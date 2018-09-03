@@ -272,6 +272,10 @@ import.and.install.libraries = function(paths) {
   # TIME-FREQ
   
   
+  # SHINY APPs
+  if (!require("Cairo")) install.packages("Cairo"); library("Cairo")
+  # https://gykovacsblog.wordpress.com/2017/05/15/installing-cairo-for-r-on-ubuntu-17-04/
+  # sudo apt-get install libcairo2-dev libgtk2.0-dev xvfb xauth xfonts-base libxt-dev
   
 }
 

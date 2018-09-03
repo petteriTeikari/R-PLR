@@ -10,18 +10,49 @@ server <- function(input, output) {
   # https://gykovacsblog.wordpress.com/2017/05/15/installing-cairo-for-r-on-ubuntu-17-04/
   # apt-get install libcairo2-dev libgtk2.0-dev xvfb xauth xfonts-base libxt-dev
 
+  # Annoying manual switch whether you want to do outlier or imputation fixing :P
   mode = 'outlier'
   # mode = 'imputation'
   
-  if (identical(mode, 'outlier')) {
-    path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/SERI2017'
-    path_out = file.path(path, '..', 'outlier_free_corrected', fsep = .Platform$file.sep) 
-  } else if (identical(mode, 'imputation')) {
-    path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/imputation_final/'
-    path_out = file.path(path, '..', 'recon_imputation_correction', fsep = .Platform$file.sep)
+  # RAYMOND
+  if (identical(toString(Sys.info()["nodename"]), "RAY-XPS" ) &&
+      identical(toString(Sys.info()["login"]), "Ray P. Najjar")) {
+    
+    path_base = 'C:/Users/Ray-Najjar/Desktop/GitPLR/R-PLR'
+    
+    if (identical(mode, 'outlier')) {
+      path = 'C:/Users/Ray-Najjar/Desktop/GitPLR/TEST_OUT/outlier_free'
+      path_out = file.path(path, '..', 'outlier_free_corrected', fsep = .Platform$file.sep) 
+    } else if (identical(mode, 'imputation')) {
+      path = 'C:/Users/Ray-Najjar/Desktop/GitPLR/TEST_OUT/imputation_final/'
+      path_out = file.path(path, '..', 'recon_imputation_correction', fsep = .Platform$file.sep)
+    }
+  
+  # PETTERI
+  } else if (identical(toString(Sys.info()["nodename"]), "petteri-Server")) {
+    
+    path_base = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR'
+    
+    if (identical(mode, 'outlier')) {
+      path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/outlier_free'
+      path_out = file.path(path, '..', 'outlier_free_corrected', fsep = .Platform$file.sep) 
+    } else if (identical(mode, 'imputation')) {
+      path = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/imputation_final/'
+      path_out = file.path(path, '..', 'recon_imputation_correction', fsep = .Platform$file.sep)
+    }
+  
+  # ERROR WHEN THE USER NOT DETECTED
+  } else {
+    
+    warning('No path defined for: ', Sys.info())
   }
   
-  IO_path = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR/PLR_IO/'
+  if (dir.exists(path_out) == FALSE) {
+    cat('Directory for OUTPUT files for correction files do not exist so creating one\n')
+    dir.create(path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+  }
+  
+  IO_path = file.path(path_base, 'PLR_IO')
   source(file.path(IO_path, 'check_for_done_filecodes.R', fsep = .Platform$file.sep))
     
   files_fullpath = list.files(path=path, pattern='*.csv', recursive=FALSE, full.names = FALSE)
@@ -29,7 +60,7 @@ server <- function(input, output) {
   # check undone better
   process_only_unprocessed = TRUE
   if (process_only_unprocessed) {
-    check_path = file.path(path_out, '..', 'reconstructed', fsep = .Platform$file.sep)
+    check_path = file.path(path_out, fsep = .Platform$file.sep)
     indices_undone = check.for.done.filecodes(files_fullpath, check_path)
     files_fullpath = files_fullpath[indices_undone]
   }
@@ -41,13 +72,42 @@ server <- function(input, output) {
   cat(paste('   from:', path, '\n'))
   
   # Subsetting only two variables 
-  myvars_raw <- c("time", "pupil_raw", "video_noise_total")
-  df_raw = df_in[myvars_raw]
-  colnames(df_raw) <- c("time", "pupil", "error") # standardize names
+  if (grepl('SERI_2017', path)) {
+    
+    df_in$error = vector(, length(df_in$pupil))
+    df_in$error[] = 0
+    
+    myvars_raw <- c("time", "denoised", "error")
+    myvars_raw <- c("time_onsetZero", "pupil", "error")
+    df_raw = df_in[myvars_raw]
+    colnames(df_raw) <- c("time", "pupil", "error") # standardize names
+    
+    myvars_clean <- c("time_onsetZero", "pupil_outlier_corrected", "error")
+    df_clean = df_in[myvars_clean]
+    colnames(df_clean) <- c("time", "pupil", "error") # standardize names
+    
+  } else if (grepl('INSERM', path)) {
   
-  myvars_clean <- c("time", "pupil_outlierfree", "error")
-  df_clean = df_in[myvars_clean]
-  colnames(df_clean) <- c("time", "pupil", "error") # standardize names
+    myvars_raw <- c("time", "pupil_toBeImputed", "error")
+    df_raw = df_in[myvars_raw]
+    colnames(df_raw) <- c("time", "pupil", "error") # standardize names
+    
+    myvars_clean <- c("time", "pupil", "error")
+    df_clean = df_in[myvars_clean]
+    colnames(df_clean) <- c("time", "pupil", "error") # standardize names
+    
+  } else {
+    
+    myvars_raw <- c("time", "pupil_raw", "video_noise_total")
+    df_raw = df_in[myvars_raw]
+    colnames(df_raw) <- c("time", "pupil", "error") # standardize names
+    
+    myvars_clean <- c("time", "pupil_outlierfree", "error")
+    df_clean = df_in[myvars_clean]
+    colnames(df_clean) <- c("time", "pupil", "error") # standardize names
+    
+  }
+  
   
   # Determine if this is the "2nd pass" correction, i.e. further correcting the once corrected
   # file.
@@ -69,9 +129,11 @@ server <- function(input, output) {
     }
     
     myvars_corr <- c("time", "pupil_toBeImputed", "error")
+    # myvars_corr <- c("time", "denoised", "error")
     df_corr = df_in[myvars_corr]
     colnames(df_corr) <- c("time", "pupil", "error") # standardize names
     
+    myvars_clean <- c("time", "missForest", "error")
     myvars_clean <- c("time", "missForest", "error")
     df_clean = df_in[myvars_clean]
     colnames(df_clean) <- c("time", "pupil", "error") # standardize names
@@ -106,6 +168,7 @@ server <- function(input, output) {
     } else {
       
       corrected_2ndPass = FALSE
+     
       myvars_corr <- c("time", "pupil_outlier_corrected", "error")
       df_corr = df_in[myvars_corr]
       colnames(df_corr) <- c("time", "pupil", "error") # standardize names
@@ -452,6 +515,7 @@ server <- function(input, output) {
       
       # replace the pupil column as well
       df_in$pupil = df_in[[output_corr_column]]
+      df_in$imputation_correction = df_in[[output_corr_column]]
       
       df_in$imp_included_points = included_points
       df_in$imp_excluded_points = excluded_points
@@ -464,7 +528,7 @@ server <- function(input, output) {
       # You can hand-place end points in Calc or something for now
       df_in$imp_handplaced_points = vector(mode='integer', length=length(df_in$imp_excluded_points))
       
-    # For correcting imputation
+    
     } else {
       
       # replace the pupil column as well
@@ -479,19 +543,22 @@ server <- function(input, output) {
       df_in$handplaced_points = vector(mode='integer', length=length(df_in$excluded_points))
     }
     
-    # str(df_in)
     # str(path_out_with_filename)
     
     # Write to disk
     write.csv(df_in, file=path_out_with_filename)
     
     # Move the done file to done
-    move_path = file.path(path, '..', fsep = .Platform$file.sep)
-    cat(paste('     -- Moving the input file to:',  move_path, '\n'))
-    from = file.path(path, filename_in, fsep = .Platform$file.sep)
-    to = file.path(move_path, filename_in, fsep = .Platform$file.sep)
-    
-    file.rename(from, to)
+    # move_path = file.path(path, 'outlierCorrection_input_DONE', fsep = .Platform$file.sep)
+    # if (dir.exists(move_path) == FALSE) {
+    #   cat('Directory for DONE input files for correction files do not exist so creating one')
+    #   dir.create(move_path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
+    # }
+    # 
+    # cat(paste('     -- Moving the input file to:',  move_path, '\n'))
+    # from = file.path(path, filename_in, fsep = .Platform$file.sep)
+    # to = file.path(move_path, filename_in, fsep = .Platform$file.sep)
+    # file.rename(from, to)
     
     cat(paste('  WRITE DONE! You can open the next file!\n'))
     
