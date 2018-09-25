@@ -1,4 +1,6 @@
-normalize.low.level = function(vector, baseline, normalize_method, if_pupil_value) {
+normalize.low.level = function(vector, baseline, 
+                               normalize_method = 'hybrid', 
+                               if_pupil_value = TRUE) {
 
   if (identical(normalize_method, 'hybrid')) {
     

@@ -1,4 +1,5 @@
 # Plot Velocity and Acceleration quickly
+plot.quick.velocity.and.acceleration = function() {
 
   # LIBRARIES
   if (!require("ggplot2")) install.packages("ggplot2"); library("ggplot2")
@@ -29,6 +30,7 @@
   # Plot subfunction
   plot.acc.and.veloc(dataframe = df)
   
+}
   
 plot.acc.and.veloc = function(dataframe) {
   
@@ -37,8 +39,8 @@ plot.acc.and.veloc = function(dataframe) {
   # manual multipliers
   # make dynamic, more intelligent later
   p_multip = c(-60,5)
-  v_multip = c(-0.5, 0.5)
-  a_multip = c(-0.0055, 0.0055)
+  v_multip = c(-0.6, 0.6)
+  a_multip = c(-0.035, 0.035)
   
   # global alpha for the light ON annotations
   alpha_global = .2
