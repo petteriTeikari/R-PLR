@@ -14,9 +14,11 @@
   library(dplyr)
   library(plyr)
 
-  library(pracma)
+  if (!require("pracma")) install.packages("pracma"); library("pracma")
+
   # install.packages("car")
-  library(car) # for Levene's test e.g.
+  if (!require("car")) install.packages("car"); library("car")
+  # library(car) # for Levene's test e.g.
 
 
   # install.packages("MAMSE")
@@ -30,8 +32,8 @@
 
   # install.packages("MatchIt")
   # install.packages("optmatch")
-  library(MatchIt) # for age-matching
-  library(optmatch) # for age-matching
+  #library(MatchIt) # for age-matching
+  #library(optmatch) # for age-matching
 
   # for converting list into a data frame
   # https://www.rdocumentation.org/packages/qdapTools/versions/1.3.3/topics/list2df
