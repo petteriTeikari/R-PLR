@@ -1,11 +1,14 @@
 save.matrices.for.deep.learning = function(data_frame_feats, list_traces, subject_codes_traces,
                                            list_agematched, master_indices_out, grouping_vars_out,
-                                           parameters, settings) {
+                                           combine_pathology = TRUE, 
+                                           factors_kept, parameters, settings) {
   
   # Combine POAG/NTG -> Glaucoma
   if (combine_pathology) {
+    cat('Combining (sub)pathologies as one')
     factors_in = combine.pathologies(factors_in = grouping_vars_out, 
-                                     factors_kept = parameters[['factors_keep']][[parameters[['main_factor']]]])
+                                     factors_kept = factors_kept) # parameters[['factors_keep']][[parameters[['main_factor']]]])
+    # grouped_list = split.into.groups.by.grouping(list_agematched, factors_in, parameters)
   }
   
   # Export the input data list to disk
@@ -13,33 +16,33 @@ save.matrices.for.deep.learning = function(data_frame_feats, list_traces, subjec
                                                        y = list_agematched$pupil, 
                                                        err = list_agematched$error, 
                                                         classes = factors_in, 
-                                                        subject_code = subject_codes_traces,
-                                                        title_string = 'glaucoma_agematched',
+                                                        subject_codes = subject_codes_traces,
+                                                        title_string = 'glaucoma_SERI',
                                                         path_out = settings[['data_deep_path_out']],
                                                         split_into_test_and_train = TRUE)
   
-  # Synthesize data now for data augmentation
-  augm_list = augment.traces.for.deep.learning(list_in = list_agematched,
-                                                        list_full = trim.list(list_traces, master_indices_out),
-                                                        t = list_agematched$time[,1], 
-                                                        y = list_agematched$pupil, 
-                                                        err = list_agematched$error, 
-                                                        classes = factors_in, 
-                                                        subject_code = subject_codes_traces)
-  
-  y_augm = augm_list[[1]]
-  classes_augm = augm_list[[2]]
-  subjects_augm = augm_list[[3]]
-  
-  # Export the input data list to disk
-  y_agematched_aug = export.list.to.disk.for.deep.learning(t = list_agematched$time[,1], 
-                                                       y = y_augm, 
-                                                       err = list_agematched$error, 
-                                                       classes = classes_augm, 
-                                                       subject_code = subjects_augm,
-                                                       title_string = 'glaucoma_agematched_augm',
-                                                       path_out = settings[['data_deep_path_out']],
-                                                       split_into_test_and_train = TRUE)
+  # # Synthesize data now for data augmentation
+  # augm_list = augment.traces.for.deep.learning(list_in = list_agematched,
+  #                                                       list_full = trim.list(list_traces, master_indices_out),
+  #                                                       t = list_agematched$time[,1], 
+  #                                                       y = list_agematched$pupil, 
+  #                                                       err = list_agematched$error, 
+  #                                                       classes = factors_in, 
+  #                                                       subject_code = subject_codes_traces)
+  # 
+  # y_augm = augm_list[[1]]
+  # classes_augm = augm_list[[2]]
+  # subjects_augm = augm_list[[3]]
+  # 
+  # # Export the augmented data list to disk
+  # y_agematched_aug = export.list.to.disk.for.deep.learning(t = list_agematched$time[,1], 
+  #                                                      y = y_augm, 
+  #                                                      err = list_agematched$error, 
+  #                                                      classes = classes_augm, 
+  #                                                      subject_code = subjects_augm,
+  #                                                      title_string = 'glaucoma_agematched_augm',
+  #                                                      path_out = settings[['data_deep_path_out']],
+  #                                                      split_into_test_and_train = TRUE)
   
 }
 
@@ -142,7 +145,7 @@ augment.traces.for.deep.learning = function(list_in, list_full, t, y, error,
 }
 
 
-export.list.to.disk.for.deep.learning = function(t, y, err, classes, subject_code,
+export.list.to.disk.for.deep.learning = function(t, y, err, classes, subject_codes,
                                                  time_col = 'time', pupil_col = 'pupil', error_col = 'error',
                                                  title_string = 'glaucoma_agematched',
                                                  path_out = '/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT/for_deepLearning',
@@ -181,8 +184,8 @@ export.list.to.disk.for.deep.learning = function(t, y, err, classes, subject_cod
       
       if (c == 1) {
         
-        y_train = y[,indices_train]
-        y_test = y[,indices_test]
+        y_train = y_temp[,indices_train]
+        y_test = y_temp[,indices_test]
         subj_code_train = subject_codes_per_class[indices_train]
         subj_code_test = subject_codes_per_class[indices_test]
         classes_train = classes_numeric[indices][indices_train]
@@ -190,8 +193,8 @@ export.list.to.disk.for.deep.learning = function(t, y, err, classes, subject_cod
         
       } else {
         
-        y_train = cbind(y_train, y[,indices_train])
-        y_test = cbind(y_test, y[,indices_test])
+        y_train = cbind(y_train, y_temp[,indices_train])
+        y_test = cbind(y_test, y_temp[,indices_test])
         subj_code_train = c(subj_code_train, subject_codes_per_class[indices_train])
         subj_code_test = c(subj_code_test, subject_codes_per_class[indices_test])
         classes_train = c(classes_train, classes_numeric[indices][indices_train])
@@ -209,6 +212,8 @@ export.list.to.disk.for.deep.learning = function(t, y, err, classes, subject_cod
   y_out = t(rbind(classes_numeric, y)) # all traces
   y_out_train = t(rbind(classes_train, y_train))
   y_out_test = t(rbind(classes_test, y_test))
+  
+  cat(paste0('   exporting to: ', path_out, '\n      3 files: all/train/test, for data = ', title_string))
   
   # export the data (PLR traces)
   write.table(y_out, 
@@ -229,7 +234,7 @@ export.list.to.disk.for.deep.learning = function(t, y, err, classes, subject_cod
               sep = ",", row.names=FALSE, col.names=FALSE)
   
   # export the subject codes (in case you need)
-  write.table(subject_code, 
+  write.table(subject_codes, 
               file = file.path(path_out, paste0(title_string, '_subjectCodes.csv'), fsep = .Platform$file.sep),
               sep = ",", row.names=FALSE, col.names=FALSE)
   
