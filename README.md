@@ -19,6 +19,8 @@ See the [Prerequisites for R and Github](https://github.com/petteriTeikari/R-PLR
 
 ## How to start using
 
+Go to the folder on your local machine where you want this repository to be placed, and open terminal there (Command propmpt in Windows, Terminal in Linux/[Mac](https://macpaw.com/how-to/use-terminal-on-mac)
+
 `git clone --recurse-submodules https://github.com/petteriTeikari/R-PLR`
 
 ## How-to-update the repo with the submodules
