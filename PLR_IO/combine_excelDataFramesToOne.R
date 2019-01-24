@@ -29,13 +29,15 @@ combine.excelDataFramesToOne = function(df_control, df_glaucoma, df_diabetes, df
   ncol_diabetes = ncol(df_diabetes2)
   ncol_neuro = ncol(df_neuro2)
   
+  cat('\n', ' no of columns in Control sheet = ', ncol_control, '\n',   
+      ' no of columns in Glaucoma sheet = ', ncol_glaucoma, '\n',  
+      ' no of columns in Diabetes sheet = ', ncol_diabetes, '\n', 
+      ' no of columns in Neuro sheet = ', ncol_neuro, '\n')
+  
   # Your columns are not equal length if this condition is met
+  # TODO! Actually is met with both conditions?
   if (length(unique(c(ncol_control, ' ',   ncol_glaucoma, ' ',  ncol_diabetes, ' ', ncol_neuro))) != 1L) { 
-    cat('\nYour sheets are not the same length! Fix your Master Data Sheet!')
-    cat('\n', ' no of columns in Control sheet = ', ncol_control, '\n',   
-        ' no of columns in Glaucoma sheet = ', ncol_glaucoma, '\n',  
-        ' no of columns in Diabetes sheet = ', ncol_diabetes, '\n', 
-        ' no of columns in Neuro sheet = ', ncol_neuro, '\n')
+    cat('\nYour sheets are not the same length! Fix your Master Data Sheet!\n')
   } else {
     # cat('All columns the same length')
   }
@@ -46,8 +48,8 @@ combine.excelDataFramesToOne = function(df_control, df_glaucoma, df_diabetes, df
   comb2 <- rbind(comb1, df_diabetes2)
   comb3 <- rbind(comb2, df_neuro2)
   
-  cat(' .. -- After combining all groups, we have "', length(comb3$`Subject code`), '" observations (subjects)')
-  cat(' .. -- --- and "', length(colnames(comb3)), '" variables (Excel columns)')
+  cat(' .. -- After combining all groups, we have "', length(comb3$`Subject code`), '" observations (subjects)\n')
+  cat(' .. -- --- and "', length(colnames(comb3)), '" variables (Excel columns)\n\n')
   
   return(comb3)
 }

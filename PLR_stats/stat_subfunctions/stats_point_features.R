@@ -30,10 +30,21 @@ stats.point.features = function(data_frame_feats, list_traces, dataset_type,
     }
   }
   
+  combine_pathology = TRUE
+  if (combine_pathology) {
+    cat('\nCOMBINE THE PATHOLOGIES before writing to disk)\n')
+    selected = c('CONTROL', 'NTG', 'POAG', 'GLAUCOMA+', 'OTHER GLAUCOMA', 'PACG')
+    grouping_vars_out = df_trim[[grouping_variable]]
+    factors_in = combine.pathologies(factors_in = grouping_vars_out, factors_kept = selected)
+    df_trim[[grouping_variable]] = factors_in
+  }
+  
   df_trim_export = df_trim
   df_trim_export[['Code']] = subject_codes
   names_to_keep = !grepl('Uncertainty', colnames(df_trim_export)) # remove uncertainties
-  export.pupil.dataframe.toDisk(df_trim_export[names_to_keep], filename_path, data_path_out, 'feat_stats')
+  df_trim_export = df_trim_export[names_to_keep]
+  
+  export.pupil.dataframe.toDisk(df_trim_export, filename_path, data_path_out, 'feat_stats')
   
   # traces 
   traces_out = list_traces$pupil[,master_indices_out]
@@ -59,7 +70,7 @@ stats.point.features = function(data_frame_feats, list_traces, dataset_type,
   }
   
   if (parameters[['handpick_subjects']][['Flag']]) {
-    selected = c('CONTROL', 'NTG', 'POAG')
+    selected = c('CONTROL', 'GLAUCOMA')
   } else {
     selected = NA
   }

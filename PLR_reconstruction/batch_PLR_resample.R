@@ -15,14 +15,16 @@ batch.PLR.resample = function(data_path = NA, RPLR_recon_path = NA,
     
   }
   
-  #  Make programmatic?
+  cat('\nFor PLR resampling, i.e. making the time vectors exactly the same, from path:\n')
+  cat(' ... ', data_path, '\n')
+  
   # source('/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/PLR_reconstruction/batch_PLR_reconstruction.R')
   source_path = file.path(script.dir, 'subfunctions', fsep = .Platform$file.sep)
   IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
   config_path = file.path(script.dir, '..', 'config', fsep = .Platform$file.sep)
   
   # Init script
-  paths_for_output = init.reconstruction(script.dir, data_path, source_path, IO_path) 
+  paths_for_output = init.reconstruction(script.dir, data_path, source_path, IO_path, from_where_call = 'Resampling') 
   
   # Parameters 
   fps = 30
@@ -51,6 +53,10 @@ batch.PLR.resample = function(data_path = NA, RPLR_recon_path = NA,
     get.timing.stats.of.inputs(data_path, paths_for_output[[1]], IO_path, 
                                filepath, param, time_lims)
   })
+  
+  if (length(time_range) == 0) {
+    cat('\nNo time ranges defined probably due to missing input files in ', data_path, '\n')
+  }
   
   # Time limits of the all files
   hard_limits = c(460, 1500)
@@ -114,6 +120,9 @@ batch.PLR.resample = function(data_path = NA, RPLR_recon_path = NA,
                                                                  pupil_string = names(impute_df)[1])
     
     # Save to disk
+    if (subj == 1) {
+      cat('[*] Writing the resampled PLR traces to:\n\t"', paths_for_output[[2]],'"\n')
+    }
     export.pupil.dataframe.toDisk(resampled_and_imputed_df, files_to_process_recon[subj], paths_for_output[[2]], 'imputation')
     
   }

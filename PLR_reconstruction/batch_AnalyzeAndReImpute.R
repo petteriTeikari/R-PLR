@@ -26,12 +26,18 @@ batch.AnalyzeAndReImpute = function(data_path = NA,
     }
     
     data_path_out = file.path(data_path, '..', 'imputation_final', fsep = .Platform$file.sep)
+    if (iterate_imputation) {
+      data_path_out = file.path(data_path, '..', '..', 'imputation_final', fsep = .Platform$file.sep)  
+    }
     # data_path_out = file.path(data_path, '..', 'SERI_2017_imputed', fsep = .Platform$file.sep)
     source_path = file.path(script.dir, 'subfunctions', fsep = .Platform$file.sep)
     IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
     config_path = file.path(script.dir, '..', 'config', fsep = .Platform$file.sep)
     
-    paths_for_output = init.reconstruction(script.dir, data_path, source_path, IO_path) 
+    paths_for_output = init.reconstruction(script.dir, data_path, source_path, IO_path, from_where_call = 'analyzReimpute') 
+    
+    cat('INPUT PATH: ', data_path)
+    cat('\nOUTPUT PATH: ', data_path_out, '\n')
     
     # Check input files
     pattern_to_find = "*.csv"

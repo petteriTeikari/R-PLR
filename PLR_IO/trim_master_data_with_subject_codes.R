@@ -14,7 +14,9 @@ trim.master.data.with.subject.codes = function(master_data, filecodes) {
   number_of_matches = sum(corresponding_boolean)
   missing_from_master = codes_in[!corresponding_boolean]
   
-  cat('Missing from MASTER DATA SHEET: ', missing_from_master, '\n')
+  if (length(missing_from_master) > 0) {
+    cat('\nMissing from MASTER DATA SHEET: ', missing_from_master, '\n')
+  }
   
   # Check for duplicates
   unik <- !duplicated(codes_master)  ## logical vector of unique values 

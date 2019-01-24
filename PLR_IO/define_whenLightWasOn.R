@@ -74,15 +74,27 @@ define.whenLightWasOn = function(data_frame_in, verbose = FALSE, modeOfOnset = '
     }
     
     # Compute 1st and 2nd derivative
-    derivatives = compute.PLR.derivatives(t =time_around_onset, 
-                                          y = pupil_around_onset, 
-                                          debug=verbose)
-      diff1st = derivatives[[1]] # diff2nd = derivatives[[2]]
-      max_index = which.max(diff1st)
-      max_index_diff = max_index - (margin+1) # difference to logged light onset
-      time_of_max_change = time_around_onset[max_index]
-      light_onset_time = time_around_onset[(margin+1)]
+    compute_time_of_change = FALSE # quick fix as this was causing problems
+    # TODO!
+    if (compute_time_of_change) {
+      derivatives = compute.PLR.derivatives(t =time_around_onset, 
+                                            y = pupil_around_onset, 
+                                            debug=verbose)
       
+        diff1st = derivatives[[1]] # diff2nd = derivatives[[2]]
+        max_index = which.max(diff1st)
+        max_index_diff = max_index - (margin+1) # difference to logged light onset
+        time_of_max_change = time_around_onset[max_index]
+        light_onset_time = time_around_onset[(margin+1)]
+        
+      
+      
+    } else {
+      
+      max_index_diff = 0
+      
+    }
+    
     # Correct the indices now
     light_range_index$red = light_range_index$red + max_index_diff
     light_range_index$green = light_range_index$green + max_index_diff

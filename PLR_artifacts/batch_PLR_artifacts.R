@@ -42,11 +42,14 @@ batch.PLR.artifacts = function(data_path = NA, RPLR_artifacts_path = NA,
   
   # Debugging the "SERI syntax"
   pattern_to_find = "*.csv"
+  
+  cat('INPUT FOLDER now for the processed "video files":', data_path, '\n')
   data_path_out = file.path(data_path, '..', 'outlier_free', fsep = .Platform$file.sep)
   if (dir.exists(data_path_out) == FALSE) {
     cat('Creating the directory for DATA output')
     dir.create(data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
+  cat('OUTPUT FOLDER now for the artifact cleaned PLR traces:', data_path_out, '\n\n')
   
   # DEFAULT PARAMETERS
   # TODO! put outside this batch as well for 

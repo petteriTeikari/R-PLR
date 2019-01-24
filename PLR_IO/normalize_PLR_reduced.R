@@ -12,6 +12,7 @@ normalize.PLR.reduced = function(df, config_path = NA,
   if (is.na(indices[1])) {
     bins = import.binDefinitions(config_path)
     baseline_period = get.baseline.period.from.bins(bins)
+    baseline_period = c(-5, 0)
     b_i1 = which.min(abs(baseline_period[1] - df$time_onsetZero))
     b_i2 = which.min(abs(baseline_period[2] - df$time_onsetZero))
   } else {
@@ -19,7 +20,25 @@ normalize.PLR.reduced = function(df, config_path = NA,
     b_i2 = indices[2]
   }
   
+  pupil_vector = df[[pupil_col]]
   baseline_vector = df[[pupil_col]][b_i1:b_i2]
+
+  if (is.null(baseline_vector)) {
+    cat('   !! Your pupil column was not found !! Using second best guess "pupil_outlier_corrected"')
+    pupil_vector = df[['pupil_outlier_corrected']]
+    baseline_vector = df[['pupil_outlier_corrected']][b_i1:b_i2]
+    if (is.null(baseline_vector)) {
+      cat('   !! Your pupil column was still not found !! Using THIRD best guess "pupil_outlierfree"')
+      pupil_vector = df[['pupil_outlierfree']]
+      baseline_vector = df[['pupil_outlierfree']][b_i1:b_i2]
+      if (is.null(baseline_vector)) {
+        cat('   !! Your pupil column was still not found !! Using LAST RESORT "pupil_raw"')
+        pupil_vector = df[['pupil_raw']]
+        baseline_vector = df[['pupil_raw']][b_i1:b_i2]
+      }
+    }
+    
+  }
     
   # the stats of the vector
   baseline_stats = data.frame(mu = mean(baseline_vector, na.rm = TRUE),
@@ -105,7 +124,7 @@ normalize.PLR.reduced = function(df, config_path = NA,
   
   # finally correct the error based on just the error_fractional?
   if (length(df$error_fractional) != 0) {
-    df$error = df$error_fractional * df$pupil  
+    df$error = df$error_fractional * pupil_vector
   }
   
   

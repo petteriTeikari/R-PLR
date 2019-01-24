@@ -15,8 +15,9 @@ check.for.done.filecodes = function(files_to_process,
     filecodes_done = unique(filecodes_done)
     
   } else {
-    warning('There are no done files from your "check path" = ', path_check_for_done, '\n',
-            '  -> in other we assume now that you have not yet processed any of the input files')
+    cat(' .... There are no done files from your "check path" = ', path_check_for_done, '\n',
+        '       -> in other we assume now that you have not yet processed any of the input files\n')
+    cat('         EXPLANATION #2: Why we are checking from "Reconstructed path"? As that is the end point of this script\n\n')
     filecodes_done = c('')
   }
   

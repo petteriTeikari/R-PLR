@@ -1,7 +1,7 @@
 process.artifact.file <- function(path, data_path_out, IO_path, source_path,
                                   filename_path, param) {
 
-  cat("Processing file:", filename_path, "\n")
+  cat(" \nProcessing file:", filename_path, "\n")
   
   # Unwrap the parameters
   # easier to pass variables like this to "APIed" subfunctions rather than passing

@@ -83,13 +83,13 @@ create.PLR.dataset.matrix = function(data_path_out = NA, data_resampled_path_out
   }
   
   # You could jitter here, for data augmentation
-  light_range_index_adapt = define.whenLightWasOn(data_frame_out, modeOfOnset = 'adaptive', jitter = jitter)
-  light_onset_blue_adapt = light_range_index_adapt$blue[1]
+  # light_range_index_adapt = define.whenLightWasOn(data_frame_out, modeOfOnset = 'adaptive', jitter = jitter)
+  # light_onset_blue_adapt = light_range_index_adapt$blue[1]
   
   # Add the max derivative centred time as well
-  t = data_frame_in$time
-  diff_in_seconds = t[light_onset_blue_adapt] - t[light_onset_blue]
-  data_frame_out$time_maxDeriv_zero = data_frame_out$time_onsetZero - diff_in_seconds
+  # t = data_frame_in$time
+  # diff_in_seconds = t[light_onset_blue_adapt] - t[light_onset_blue]
+  # data_frame_out$time_maxDeriv_zero = data_frame_out$time_onsetZero - diff_in_seconds
   
   ## NORMALIZATION
   if (normalize) {

@@ -47,6 +47,8 @@ batch.PLR.videos = function(data_path = NA, RPLR_video_path = NA, out_path = NA,
   
   # Go through the video files ----------------------------------------------------------------
   
+    cat(' Directory that we assume to contain the PLRxxxx folders with the "', pattern_to_find, '" wildcard:"\n      ')
+    cat(data_path, '\n\n')
     videofiles_to_process = define.pupillometerFilesToProcess(data_path, pattern_to_find, 'video')
     
     if (process_only_unprocessed) {
@@ -59,6 +61,6 @@ batch.PLR.videos = function(data_path = NA, RPLR_video_path = NA, out_path = NA,
       process.videoFile(data_path, video_data_path_out, filepath, IO_path)
     })
     
-    cat('ALL VIDEO FILES IMPORTED')
+    cat('\nALL VIDEO FILES IMPORTED\n')
 
 }

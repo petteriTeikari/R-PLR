@@ -10,11 +10,15 @@ export.pupil.dataframe.toDisk <- function(df_in, filename_path, data_path_out, d
     cat('Creating the subdirectory for data export: ', data_path_out, '\n')
     dir.create(data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
-
+  
   # Save the raw in as well (with less columns now)
   fileout = sub('.csv', paste('_', data_type, '.csv', sep = ''), just_filename)
+  
+  # quick'n'dirty filter for possible double underscore
+  fileout = gsub('__', '_', fileout)
+  
   fullfileout = file.path(data_path_out, fileout, fsep = .Platform$file.sep)
-  cat('     --> Writing PLR data to "', fileout, '"\n')
+  cat('\t--> Writing PLR data to "', fileout, '"\n')
   write.csv(df_in, file = fullfileout, row.names=FALSE)
   
   # Save all the data into one HDF5 with all the metadata

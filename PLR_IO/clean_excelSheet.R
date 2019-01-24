@@ -32,7 +32,7 @@ clean.excelSheet = function(sheet_as_df, group_code) {
   sheet_2b$Group = vec
   
   rows_removed = length(sheet_as_df$`Subject code`) - number_of_rows_left
-  cat(' .. Removed total of "', rows_removed, '" rows from', group_code, 'Excel sheet\n')
+  cat('   .. Removed total of "', rows_removed, '" rows from', group_code, 'Excel sheet\n')
   
   return(sheet_2b)
   

@@ -256,7 +256,7 @@ import.feats.data.for.plot = function(fullfile_path, path, file,
   
   # Get global names
   ind_global = which(grepl('_global', file))
-  cat('reading in = ', fullfile_path[ind_global])
+  cat('reading in = ', fullfile_path[ind_global, '\n'])
   df_global = read.csv(fullfile_path[ind_global], stringsAsFactors = FALSE)
   global_names = unique(df_global[['Name']])
   

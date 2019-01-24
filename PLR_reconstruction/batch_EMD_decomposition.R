@@ -54,10 +54,24 @@ batch.EMD.decomposition = function(data_path = NA, data_path_out = NA,
   # https://www.r-bloggers.com/a-no-bs-guide-to-the-basics-of-parallelization-in-r/
   # https://github.com/tdhock/mclapply-memory
   start_time <- Sys.time()
-  list_of_DFs = mclapply(files_to_process, function(files_to_process){
-    file.decomposition.wrapper(files_to_process, data_path_out, param, pupil_col, debug = FALSE, 
-                               dataset_string, time_col)
-  } , mc.cores = param[['no_of_cores_to_use']])
+  
+  if (identical(.Platform$OS.type, 'windows')) {
+    
+    warning('You are now running a crappy Windows system that does not support multicore processing :(
+    -- thus for example compared to the Ubuntu server, this CEEMD decomposition might be more than 40x slower now')
+    
+    list_of_DFs = lapply(files_to_process, function(files_to_process){
+      file.decomposition.wrapper(files_to_process, data_path_out, param, pupil_col, debug = FALSE, 
+                                 dataset_string, time_col)})
+    
+  } else {
+  
+    list_of_DFs = mclapply(files_to_process, function(files_to_process){
+      file.decomposition.wrapper(files_to_process, data_path_out, param, pupil_col, debug = FALSE, 
+                                 dataset_string, time_col)
+    } , mc.cores = param[['no_of_cores_to_use']])
+    
+  }
   end_time <- Sys.time()
   end_time - start_time # 17.26166 hours with home AMD (4 cores)
   

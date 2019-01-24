@@ -51,8 +51,9 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
 
     # If you want to use custom column to select the subject to use
       
-      parameters[['handpick_subjects']][['Flag']] = FALSE
-      parameters[['handpick_subjects']][['Column']] = 'InterimGlaucomavsControl2'
+      parameters[['handpick_subjects']][['Flag']] = TRUE
+      parameters[['handpick_subjects']][['ignore_diagnosis_column']] = TRUE
+      parameters[['handpick_subjects']][['Column']] = 'InterimGlaucomavsControl3'
       
     # The features of interest
       parameters[['factors']] = parameters[['main_factor']] # fixed variable
@@ -84,7 +85,7 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
       parameters[['stats']][['pairwise_tests']][['p_threshold']] = 0.05
       
       # ROC
-      parameters[['ROC']][['combine_pathologies_also']] = FALSE
+      parameters[['ROC']][['combine_pathologies_also']] = TRUE
       
       # Other flags
       parameters[['flags']][['skip_age_match']] = FALSE

@@ -20,7 +20,7 @@ import.resampledReconstructions = function(data_path_traces, pattern_to_find,
   # each time vector being for example int [1:1980] whereas we would
   # like each variable to be 2D Matrix
   cat(' ->  Combining the read traces into a one huge list\n')
-  list_huge = combine.list.dfs.to.one.list(list, included_vars)
+  list_huge = combine.list.dfs.to.one.list(list, included_vars, file_names)
   cat('    .. in total found', length(list), 'files from the import folder')
   
   # Convert then to a data frame
@@ -57,7 +57,7 @@ read.individual.trace.in = function(filename_path, included_vars) {
 
 # From list with individual data frames to a one
 # large dataframe
-combine.list.dfs.to.one.list = function(list, included_vars) {
+combine.list.dfs.to.one.list = function(list, included_vars, file_names) {
   
   no_of_files_in_list = length(list)
   var.names = colnames(list[[1]])
@@ -80,7 +80,16 @@ combine.list.dfs.to.one.list = function(list, included_vars) {
       
       # actually assign then
       vector_in = list[[file_i]][[var_name]]
-      list_out[[var_name]][,file_i] = vector_in
+      
+      # if the desired variable is missing (is.null())
+      if (!is.null(vector_in)) {
+        list_out[[var_name]][,file_i] = vector_in 
+      } else {
+        cat('For file = "', file_names[file_i], '" (file_i = "', file_i, '") there is no data for variable = "', var_name, '", writing a NA vector\n')
+        NA_vector = vector(length = no_of_timepoints)
+        NA_vector[] = NA
+        list_out[[var_name]][,file_i] = NA_vector
+      }
       
     } # end of var_i
   } # end of file_i

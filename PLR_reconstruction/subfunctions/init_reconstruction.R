@@ -1,5 +1,5 @@
 # INIT SCRIPT (i.e. HIDE THE BORING STUFF)
-init.reconstruction = function(script.dir, data_path, source_path, IO_path) {
+init.reconstruction = function(script.dir, data_path, source_path, IO_path, from_where_call = NA) {
   
   # Plotting libraries
   if (!require("ggplot2")) install.packages("ggplot2"); library("ggplot2")
@@ -14,6 +14,7 @@ init.reconstruction = function(script.dir, data_path, source_path, IO_path) {
   # IMPUTATION
   # install.packages("Amelia")
   # library(Amelia)
+  if (!require("imputeTS")) install.packages("imputeTS"); library("imputeTS")
   # install.packages("imputeTS")
   # library(imputeTS)
   
@@ -87,33 +88,50 @@ init.reconstruction = function(script.dir, data_path, source_path, IO_path) {
   source(file.path(source_path, 'lowLevel_decomposition_wrappers.R', fsep = .Platform$file.sep))
   source(file.path(source_path, 'data_joint_modeling_wrapper.R', fsep = .Platform$file.sep))
   
+  cat('Calling "init_reconstruction.R from ', from_where_call, ' (if NA, a "generic call")')
+  
+  if (identical(from_where_call, 'Resampling')) {
+    data_path = file.path(data_path, '..', fsep = .Platform$file.sep)
+    cat('\nChanging base path for data outputs to:', data_path, '\n\n')
+  }
+  
+  if (identical(from_where_call, 'analyzReimpute')) {
+    data_path = file.path(data_path, '..', fsep = .Platform$file.sep)
+    cat('\nChanging base path for data outputs to:', data_path, '\n\n')
+  }
+  
   # Debugging the "SERI syntax"
   if (dir.exists(data_path) == FALSE) {
-    cat('Creating the directory for DATA PATH\n')
+    cat(' .. Creating the directory for DATA PATH:\n')
+    cat(' .. .. ', data_path, '\n')
     dir.create(data_path, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
   
   data_path_out = file.path(data_path, '..', 'recon', fsep = .Platform$file.sep)
   if (dir.exists(data_path_out) == FALSE) {
-    cat('Creating the directory for DATA Recon output\n')
+    cat(' .. Creating the directory for DATA Recon output:\n')
+    cat(' .. .. ', data_path_out, '\n')
     dir.create(data_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
 
   data_resampled_path_out = file.path(data_path, '..', 'recon_resampled', fsep = .Platform$file.sep)
   if (dir.exists(data_resampled_path_out) == FALSE) {
-    cat('Creating the directory for DATA Imputed output\n')
+    cat(' .. Creating the directory for DATA Imputed output:\n')
+    cat(' .. .. ', data_resampled_path_out, '\n')
     dir.create(data_resampled_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
 
   data_trimmed_path_out = file.path(data_path, '..', 'recon_trimmed', fsep = .Platform$file.sep)
   if (dir.exists(data_trimmed_path_out) == FALSE) {
-    cat('Creating the directory for DATA Trimmed output\n')
+    cat(' .. Creating the directory for DATA Trimmed output:\n')
+    cat(' .. .. ', data_trimmed_path_out, '\n')
     dir.create(data_trimmed_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
 
   data_temp_path_out = file.path(data_path, '..', 'recon_EMD', fsep = .Platform$file.sep)
   if (dir.exists(data_temp_path_out) == FALSE) {
-    cat('Creating the directory for DATA Recon EMD output\n')
+    cat(' .. Creating the directory for DATA Recon EMD output:\n')
+    cat(' .. .. ', data_temp_path_out, '\n')
     dir.create(data_temp_path_out, showWarnings = TRUE, recursive = FALSE, mode = "0777")
   }
   

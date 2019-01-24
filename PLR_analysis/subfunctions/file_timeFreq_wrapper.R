@@ -59,6 +59,8 @@ file.timeFreq.wrapper = function(filename_path, data_path_out, param, debug = FA
     # time.span <- c(5, 10)
     freq.span <- c(0, 2)
     # amp.span <- c(1e-6, 2.5e-5)
+    par(mar=c(1,1,1,1))
+    
     hhg_img = HHGramImage(hgram, freq.span = freq.span)
     hgram[['hhg_img']] = hhg_img
     hgram[['hhg_img_freq.span']] = freq.span

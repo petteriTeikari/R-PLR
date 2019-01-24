@@ -52,6 +52,7 @@ plot.acc.and.veloc = function(dataframe) {
   # index limits
   blue_ON_ind = c(min(which(blue_ON_boolean)),
                  max(which(blue_ON_boolean)))
+  
   red_ON_ind = c(min(which(red_ON_boolean)),
                  max(which(red_ON_boolean)))
   
@@ -62,31 +63,31 @@ plot.acc.and.veloc = function(dataframe) {
   p[[1]] = ggplot(data = dataframe, aes(x = time, y = pupil)) +
     geom_line(size=0.75) + 
     labs(title = 'Pupil size', subtitle = 'normalized', x = 'Time [s]', y = 'Norm. size') +
-    scale_y_continuous(limits = p_multip) +
-    annotate("rect", xmin=time[blue_ON_ind[1]], xmax=time[blue_ON_ind[2]], 
-             ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="blue") +
-    annotate("rect", xmin=time[red_ON_ind[1]], xmax=time[red_ON_ind[2]], 
-             ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="red")
+    scale_y_continuous(limits = p_multip) 
+    # annotate("rect", xmin=time[blue_ON_ind[1]], xmax=time[blue_ON_ind[2]], 
+    #          ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="blue") +
+    # annotate("rect", xmin=time[red_ON_ind[1]], xmax=time[red_ON_ind[2]], 
+    #          ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="red")
   
   # Velocity
   p[[2]] = ggplot(data = dataframe, aes(x = time, y = velocity)) +
     geom_line(size=0.75) + 
     labs(title = 'Velocity', subtitle = 'from denoised with LOESS smoothing', x = 'Time [s]', y = 'Norm. size / s') +
-    scale_y_continuous(limits = v_multip) +
-    annotate("rect", xmin=time[blue_ON_ind[1]], xmax=time[blue_ON_ind[2]], 
-             ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="blue") +
-    annotate("rect", xmin=time[red_ON_ind[1]], xmax=time[red_ON_ind[2]], 
-             ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="red")
+    scale_y_continuous(limits = v_multip) 
+    # annotate("rect", xmin=time[blue_ON_ind[1]], xmax=time[blue_ON_ind[2]], 
+    #          ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="blue") +
+    # annotate("rect", xmin=time[red_ON_ind[1]], xmax=time[red_ON_ind[2]], 
+    #          ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="red")
   
   # Acceleration
   p[[3]] = ggplot(data = dataframe, aes(x = time, y = acceleration)) +
     geom_line(size=0.75) + 
     labs(title = 'Acceleration', subtitle = 'from velocity with LOESS smoothing', x = 'Time [s]', y = bquote('Norm. size / '~s^2))+ 
-    scale_y_continuous(limits = a_multip) +
-    annotate("rect", xmin=time[blue_ON_ind[1]], xmax=time[blue_ON_ind[2]], 
-             ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="blue") +
-    annotate("rect", xmin=time[red_ON_ind[1]], xmax=time[red_ON_ind[2]], 
-             ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="red")
+    scale_y_continuous(limits = a_multip) 
+    # annotate("rect", xmin=time[blue_ON_ind[1]], xmax=time[blue_ON_ind[2]], 
+    #          ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="blue") +
+    # annotate("rect", xmin=time[red_ON_ind[1]], xmax=time[red_ON_ind[2]], 
+    #          ymin=-Inf, ymax=Inf, alpha=alpha_global, fill="red")
   
   do.call(grid.arrange, c(p, list(ncol=1, nrow=3)))
   

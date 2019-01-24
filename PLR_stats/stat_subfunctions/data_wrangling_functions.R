@@ -145,17 +145,24 @@ select.subset.from.list = function(list_traces, subject_codes_traces, data_frame
   } else {
     
     out = handpick.subjects(list_trim, data_frame_feats, parameters, master_indices)
+      
+      subject_codes_feats = data_frame_feats$`Subject code`
     
       list_out = out[[1]]
       keep_indices = out[[2]]
+      grouping_vars_out = out[[3]]
     
   }
   
   # grouping variables out
-  grouping_vars_out = all_grouping_vars[keep_indices]
+  # grouping_vars_out = all_grouping_vars[keep_indices]
   
   # correspondence between the master data sheet and the returned list
-  master_indices_out = master_indices[keep_indices]
+  master_indices_out = keep_indices
+  
+  cat('Subjects kept:\n')
+  subject_codes_out = subject_codes_feats[master_indices_out]
+  cat(subject_codes_out)
     
   return(list(list_out, master_indices_out, grouping_vars_out))
     
@@ -177,12 +184,14 @@ handpick.subjects = function(list_trim, data_frame_feats, parameters, master_ind
   no_of_handpicked_subjets_left = sum(trimmed_indices)
   handpicked_subjects_left = all_kept_subject_codes[trimmed_indices]
   
+  subject_codes_in = data_frame_feats$`Subject code`
+  keep_indices = which(subject_codes_in %in% handpicked_subjects_left)
+  subject_codes_in[keep_indices]
+  
   not_left = which(!(handpicked_subjects %in% handpicked_subjects_left))
   cat('HANDPICKED COLUMN: ', parameters[['handpick_subjects']][['Column']], '\n')
   cat('These subjects did not have traces recorded with _BR:\n')
-  cat(handpicked_subjects[not_left])
-  
-  keep_indices = which(all_kept_subject_codes %in% handpicked_subjects_left)
+  cat(handpicked_subjects[not_left], '\n')
   
   col_names = names(list_trim)
   list_out = list()
@@ -191,8 +200,10 @@ handpick.subjects = function(list_trim, data_frame_feats, parameters, master_ind
     list_out[[col_names[i]]] = mat[,keep_indices]
   }
   
+  grouping_vars_out = data_frame_feats$Diagnosis[keep_indices]
+  cat(' WE SELECTED ', length(keep_indices), 'HANDPICKED SUBJECTS (1st pass in select.subset.from.list())\n')
   
-  return(list(list_out, keep_indices))
+  return(list(list_out, keep_indices, grouping_vars_out))
 }
 
 
@@ -491,13 +502,10 @@ trim_variables_from_list = function(list_traces, vars_to_keep) {
   
 }
 
-split.into.groups.by.grouping = function(list_to_split, grouping_vars_out) {
+split.into.groups.by.grouping = function(list_to_split, grouping_vars_out, parameters) {
   
   unique_groups = unique(toupper(grouping_vars_out))
   no_of_unique_groups = length(unique_groups)
-  
-  cat('\n')
-  cat('Splitting the data matrices with all the groups in one to matrices per grouping ("',  unique_groups , '")\n')
   
   col_names = names(list_to_split)
   
@@ -508,6 +516,18 @@ split.into.groups.by.grouping = function(list_to_split, grouping_vars_out) {
   fps = round(1 / time_res, digits=0)
   
   cat(' . from', no_of_subj, 'subjects each having', no_of_timepoints, 'samples per trace (recorded at',  fps, 'fps)\n')
+  
+  if (as.logical(parameters[['handpick_subjects']][['Flag']]) && 
+      as.logical(parameters[['handpick_subjects']][['ignore_diagnosis_column']])) {
+  
+    # done in pre_process_wrapper this manually
+    
+  } else {
+    
+    cat('\n')
+    cat('Splitting the data matrices with all the groups in one to matrices per grouping ("',  unique_groups , '")\n')
+    
+  }
   
   list_temp = list()
   for (subj in 1:no_of_subj) {
@@ -541,6 +561,10 @@ split.into.groups.by.grouping = function(list_to_split, grouping_vars_out) {
     cat('Output list has only', sum_n, 'subjects, whereas in the input there were',
         no_of_subj, 'subjects')
   }
+    
+  
+  
+  
   
   return(list_temp)
   

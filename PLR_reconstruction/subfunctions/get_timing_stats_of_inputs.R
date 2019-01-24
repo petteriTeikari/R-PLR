@@ -10,7 +10,7 @@ get.timing.stats.of.inputs = function(data_path, data_path_out,
   just_filename = tail(filename_sep, n=1)
   subject_code = strsplit(just_filename, '_')[[1]][1]
   just_path = gsub(just_filename, '', filename_path)
-  cat('Reading in = ', subject_code, ' ')
+  cat('Reading in = ', subject_code, ' \n')
   
   # correct the time for light onset
   ONSET_frame = define.whenLightWasOn(data_frame_in, verbose = FALSE)

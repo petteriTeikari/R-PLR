@@ -14,7 +14,7 @@ density.and.ROC.plot = function(df_trim, df_trim_stats, features, var_name_to_pl
   factors_in = toupper(df_trim[[grouping_variable]])
   
   if (!is.na(select_groups[1])) {
-    factors_keep = factors_in %in% select_groups
+    factors_keep = toupper(factors_in) %in% toupper(select_groups)
     df_trim = df_trim[factors_keep,]
     factors_in = factors_in[factors_keep]
   }
@@ -118,6 +118,7 @@ compute.ROC.statistics.of.data.frame = function(y, group_factors, to_compare_out
   
   n = 2 # 2 for pairwise
   factor_names = levels(group_factors)
+  cat(factor_names)
   comb_indices = get.possible.combinations(group_factors, to_compare_together=n)
   
   # Go through all the combinations
@@ -231,6 +232,8 @@ pairwise.ROC = function(y1, y2, level1, level2, package='NONE', norm__p_thr = 0.
       list_out[['TNR']] = TNR
       list_out[['FNR']] = FNR
       list_out[['AUC']] = AUC
+      list_out[['CONTROL_normal']] = is.normal.y1
+      list_out[['GLAUCOMA_normal']] = is.normal.y2
     
     return(list_out)
       
@@ -255,6 +258,7 @@ get.possible.combinations = function(factors, to_compare_together = 2) {
   to_compare_together = 2 # we do pairwise now
   
   # Get all possible comparison options
+  cat(factors)
   comb_indices = combn(no_of_unique_groups, to_compare_together) 
   no_of_comb = dim(comb_indices)[2]
   
@@ -290,7 +294,10 @@ pathology.lookup.table = function(group_name_in) {
   
   if (identical(group_name_in,'POAG') |
       identical(group_name_in,'NTG') |
-      identical(group_name_in,'DISC SUSPECT')) {
+      identical(group_name_in,'DISC SUSPECT')  |
+      identical(group_name_in,'GLAUCOMA+') |
+      identical(group_name_in,'OTHER GLAUCOMA') |
+      identical(group_name_in,'PACG')) {
     
     group_name_out = 'Glaucoma'
     

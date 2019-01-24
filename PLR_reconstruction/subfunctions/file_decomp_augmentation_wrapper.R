@@ -77,8 +77,8 @@ file.decomp_augmentation.wrapper = function(filename_path, data_path_out, param,
     df_in[['velocity']] = derivatives[[1]]
     df_in[['acceleration']] = derivatives[[2]]
     
-    plot(t, df_in[['velocity']], type='l')
-    plot(t, df_in[['acceleration']], type='l')
+    # plot(t, df_in[['velocity']], type='l')
+    # plot(t, df_in[['acceleration']], type='l')
     
     
   # EXPORT ------------------------------------------------------------------

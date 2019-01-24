@@ -43,8 +43,10 @@ plot.and.filter.time.lims = function(mat_range, time_limits, hard_limits, time_l
                                      files_to_process, fps, debugON) {
   
   # Melt for plotting
+  options(warn = -1)
   samples_before_df = melt(data.frame(before = mat_range[,5]))
   samples_after_df = melt(data.frame(after = mat_range[,6]))
+  options(warn = 0)
   
   # Find extremes
   before_lims = c(min(samples_before_df$value), max(samples_before_df$value))
@@ -94,9 +96,11 @@ plot.and.filter.time.lims = function(mat_range, time_limits, hard_limits, time_l
   #  Combine now the indices as some files can appear in both lists
   exclusion_boolean = too_short_before_boolean | too_short_after_boolean
   exclusion_indices = which(exclusion_boolean == TRUE)
-  cat('In the end the following', length(exclusion_indices), 'are excluded from modelling\n')
-  for (i in 1:length(exclusion_indices)) {
-    cat(' .. ', files_to_process[exclusion_indices[i]], '\n')  
+  if (length(exclusion_indices) > 1) {
+    cat('In the end the following', length(exclusion_indices), ' files are excluded from modelling\n')
+    for (i in 1:length(exclusion_indices)) {
+      cat(' .. ', files_to_process[exclusion_indices[i]], '\n')  
+    }
   }
   
     # NOTE! the more loose the threshold, the shorter your trimmed files for modeling going to be 
@@ -107,9 +111,20 @@ plot.and.filter.time.lims = function(mat_range, time_limits, hard_limits, time_l
   # get rid of the excluded files
   mat_range2 = mat_range[!exclusion_boolean,]
   
+  dims_range2 = dim(mat_range2)
+  
   # Melt again and plot
-  samples_before_df2 = melt(data.frame(before = mat_range2[,5]))
-  samples_after_df2 = melt(data.frame(after = mat_range2[,6]))
+  
+  # only one input file
+  options(warn = -1)
+  if (is.null(dims_range2)) {
+    samples_before_df2 = melt(data.frame(before = mat_range2[5]))
+    samples_after_df2 = melt(data.frame(after = mat_range2[6]))
+  } else {
+    samples_before_df2 = melt(data.frame(before = mat_range2[,5]))
+    samples_after_df2 = melt(data.frame(after = mat_range2[,6]))
+  }
+  options(warn = 0)
   
   # Find extremes again
   before_lims2 = c(min(samples_before_df2$value), max(samples_before_df2$value))

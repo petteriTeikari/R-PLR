@@ -6,11 +6,12 @@
   library(gridExtra)
   library(reshape2)
 
-  library(doParallel)
+  if (!require("doParallel")) install.packages("doParallel"); library("doParallel")
 
   # data wrangling
   library(reshape2)
-  library(tidyr)
+
+  if (!require("tidyr")) install.packages("tidyr"); library("tidyr")
   library(dplyr)
   library(plyr)
 
@@ -19,7 +20,8 @@
   # install.packages("car")
   if (!require("car")) install.packages("car"); library("car")
   # library(car) # for Levene's test e.g.
-
+  # You need system-level installation
+  # sudo apt install liblapack-dev liblapack3 libopenblas-base libopenblas-dev r-cran-car
 
   # install.packages("MAMSE")
   # library(MAMSE) # for ROC
@@ -124,6 +126,7 @@
   
   out_import = import.resampledReconstructions(data_path_traces, pattern_to_find, 
                                                dataset_type, included_vars, settings)
+  
     list_traces = out_import[[1]]
     subject_codes_traces = out_import[[2]]
     # e.g. 287 obs with each 1980 datapoints, and 32 variables
