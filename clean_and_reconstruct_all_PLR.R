@@ -7,16 +7,14 @@ clean.and.reconstruct.PLR = function() {
   full_path = rstudioapi::getActiveDocumentContext()$path
   # script.dir <- dirname(sys.frame(1)$ofile) # https://stackoverflow.com/a/15373917
   
-  if (!exists("script.dir")) {
-    warning(' You need to run this script once as "Run All" as this path is not going to be picked up from RStudio\n,
-               ... now you get the "Error in sys.frame(1) : not that many frames on the stack"\n
-               .... feel free to correct this to work better if you find a way for interactive RStudio use\n
-               --- Run: "Ctrl+Alt+Enter"\n')
+   if (!exists("full_path")) {
+    warning(' The location of this file "clean_and_reconstruct_all_PLR.R" for some reason was not detected?\n')
     
     # If this route fails, uncomment next line, and set this manually and then try to keep working line-by-line (Ctrl+Enter)
     # script.dir = 'C:/Users/Ray-Najjar/Desktop/GitPLR/R-PLR' # Windows
     # script.dir = '/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR' # Linux/Mac
-    # script.dir = 'C:\\Users\\petteri-sda1\\Dropbox\\manuscriptDrafts\\pupilArtifactsConditioning\\PLR_CODE\\R-PLR'
+    # script.dir = 'C:\\Users\\petteri-sda1\\Dropbox\\manuscriptDrafts\\pupilArtifactsConditioning\\PLR_CODE\\R-PLR'    
+    
   } else {
     paths = list()
     script.dir = strsplit(full_path, split = .Platform$file.sep, fixed=TRUE)[[1]]
