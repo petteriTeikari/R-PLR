@@ -4,7 +4,7 @@ clean.and.reconstruct.PLR = function() {
 
   # https://stackoverflow.com/questions/1815606/rscript-determine-path-of-the-executing-script
   library(rstudioapi)    
-  script.dir = rstudioapi::getActiveDocumentContext()$path
+  full_path = rstudioapi::getActiveDocumentContext()$path
   # script.dir <- dirname(sys.frame(1)$ofile) # https://stackoverflow.com/a/15373917
   
   if (!exists("script.dir")) {
@@ -19,6 +19,22 @@ clean.and.reconstruct.PLR = function() {
     # script.dir = 'C:\\Users\\petteri-sda1\\Dropbox\\manuscriptDrafts\\pupilArtifactsConditioning\\PLR_CODE\\R-PLR'
   } else {
     paths = list()
+    script.dir = strsplit(full_path, split = .Platform$file.sep, fixed=TRUE)[[1]]
+    if (identical(.Platform$OS.type, 'windows')) {
+      # script.dir = strsplit(full_path_script, split = '\\', fixed=TRUE)[[1]]
+      # just to make sure that this is correctly split
+    }
+    just_the_file = tail(script.dir,1)
+    cat('   --- just_the_file = ', just_the_file, '\n')
+    cat('   --- --- full_path_script = ', full_path, '\n\n')
+    script.dir = gsub(just_the_file, '', full_path)
+    
+    # remove the last separator
+    if (substr(script.dir, nchar(script.dir), nchar(script.dir)) == '/') {
+      script.dir = substr(script.dir, 1, nchar(script.dir)-1)
+    } else if (substr(script.dir, nchar(script.dir), nchar(script.dir)) == '/') {
+      script.dir = substr(script.dir, 1, nchar(script.dir)-1)
+    }
     paths[['RPLR']][['base']] = script.dir  
   }
   
