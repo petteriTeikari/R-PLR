@@ -302,10 +302,16 @@ plot_bin_features = function(data_frame_norm, bins, features, data_bins,
    
   # Save to disk
   filename_out = sub('.csv', paste('_features_', color, '.png', sep = ''), just_filename)
+  #filename_out = sub('.csv', paste('_features_', color, '.pdf', sep = ''), just_filename)
   path_out = file.path(data_images_path_out, filename_out, sep = .Platform$file.sep)
   path_out = sub('//', '', path_out) # why // at the end?
   
-  ggsave(path_out, ml, , width = 42.67, height = 24, units = "cm")
+  # ggsave(path_out, ml, device = png, width = 42.67, height = 24, units = "cm")
+  if (!identical(.Platform$OS.type, 'windows')) {
+    ggsave(path_out, ml, width = 42.67, height = 24, units = "cm")
+  } else {
+    cat('Skipping the export as .png on Windows as there were problems, saving only the numerical features to .csv / .RData\n')
+  }
   
 }
   

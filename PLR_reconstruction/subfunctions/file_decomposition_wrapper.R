@@ -110,6 +110,6 @@ file.decomposition.wrapper = function(filename_path, data_path_out, param,
     
     # Write to disk finally
     export.pupil.dataframe.toDisk(decomp_df, just_filename, data_path_out, 'CEEMD')
-    cat(filecode, ' .. wrote to disk the results')
+    # cat(filecode, ' .. wrote to disk the results')
     
 }

@@ -25,6 +25,9 @@ batch.EMD.decomposition = function(data_path = NA, data_path_out = NA,
   IO_path = file.path(script.dir, '..', 'PLR_IO', fsep = .Platform$file.sep)
   config_path = file.path(script.dir, '..', 'config', fsep = .Platform$file.sep)
   
+  cat('\nDATA IN: ', data_path, '\n')
+  cat('DATA OUT: ', data_path_out, '\n\n')
+
   source(file.path(source_path, 'init_reconstruction.R', fsep = .Platform$file.sep))
   paths_for_output = init.reconstruction(script.dir, data_path, source_path, IO_path) # Init script
     
@@ -46,7 +49,7 @@ batch.EMD.decomposition = function(data_path = NA, data_path_out = NA,
   # Parameters
   param = list()
   param[['fps']] = 30
-  param[['no_of_cores_to_use']] = detectCores() - 0
+  param[['no_of_cores_to_use']] = detectCores() - 1 # using all but one core 
 
 # CEEMD Decomposition ----------------------------------------------------------------
   
@@ -60,16 +63,20 @@ batch.EMD.decomposition = function(data_path = NA, data_path_out = NA,
     warning('You are now running a crappy Windows system that does not support multicore processing :(
     -- thus for example compared to the Ubuntu server, this CEEMD decomposition might be more than 40x slower now')
     
+    options(warn = -1)
     list_of_DFs = lapply(files_to_process, function(files_to_process){
       file.decomposition.wrapper(files_to_process, data_path_out, param, pupil_col, debug = FALSE, 
                                  dataset_string, time_col)})
+    options(warn = 0)
     
   } else {
   
+    options(warn = -1)
     list_of_DFs = mclapply(files_to_process, function(files_to_process){
       file.decomposition.wrapper(files_to_process, data_path_out, param, pupil_col, debug = FALSE, 
                                  dataset_string, time_col)
     } , mc.cores = param[['no_of_cores_to_use']])
+    options(warn = 0)
     
   }
   end_time <- Sys.time()

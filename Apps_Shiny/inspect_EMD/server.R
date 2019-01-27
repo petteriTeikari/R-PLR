@@ -39,7 +39,7 @@ win_indices = paths_cfg$V2 == 'windows'
 
 if (identical(.Platform$OS.type, 'windows')) {
   paths_win = paths_cfg$V3[win_indices]
-  paths_data_in = paths_win[1]
+  paths_data_in = paths_win[2]
   paths_data_out = paths_win[2]
   
 } else {
@@ -57,8 +57,8 @@ move_path = file.path(paths_data_in, 'DONE', fsep = .Platform$file.sep) # move i
 
 # Source the subfunctions
 source(file.path(recon_dir, 'post_process_decomposition_IMFs.R', fsep = .Platform$file.sep))
-source(file.path(IO_path, 'export_pupil_dataframe_toDisk.R', fsep = .Platform$file.sep))
-source(file.path(IO_path, 'check_for_done_filecodes.R', fsep = .Platform$file.sep))
+source(file.path(IO_dir, 'export_pupil_dataframe_toDisk.R', fsep = .Platform$file.sep))
+source(file.path(IO_dir, 'check_for_done_filecodes.R', fsep = .Platform$file.sep))
 
 cat('\nDATA IN: ', paths_data_in)
 cat('\nDATA OUT: ', path_out)
@@ -121,22 +121,21 @@ server = function(input, output, session) {
       IMFs_plot = melt(df_plot_IMFs, id = 'time')
     
     # define input
-    if (grepl('loFreq', path)) {
-      input_type = 'loFreq'
-      components = c('noise', 'loFreq_hi', 'loFreq_lo', 'base')
-    } else if (grepl('hiFreq', path)) {
-      input_type = 'hiFreq'
-      components = c('noise', 'hiFreq_hi', 'hiFreq_lo', 'base')
-    } else if (grepl('noise', path)) {
-      input_type = 'noise'
-      components = c('noise', 'spikes', 'base')
-    } else {
-      input_type = '1stPass'
-      components = c('noiseNorm', 'noiseNonNorm', 'hiFreq', 'loFreq', 'base')
-    }
+    # if (grepl('loFreq', path)) {
+    #   input_type = 'loFreq'
+    #   components = c('noise', 'loFreq_hi', 'loFreq_lo', 'base')
+    # } else if (grepl('hiFreq', path)) {
+    #   input_type = 'hiFreq'
+    #   components = c('noise', 'hiFreq_hi', 'hiFreq_lo', 'base')
+    # } else if (grepl('noise', path)) {
+    #   input_type = 'noise'
+    #   components = c('noise', 'spikes', 'base')
+    # } else {
+    input_type = '1stPass'
+    components = c('noiseNorm', 'noiseNonNorm', 'hiFreq', 'loFreq', 'base')
     
     # Estimate the most likely combining of IMFs
-    IMF_index_estimates = estimate.imf.combination.indices(df_IMFs, input_type, path = path)
+    IMF_index_estimates = estimate.imf.combination.indices(df_IMFs, input_type) #, path = path)
     
     # convert to radiobutton selections
     IMF_radiobutton_indices = IMF.indices.into.radiobutton.indices(IMF_index_estimates, df_IMFs, input_type)
@@ -282,10 +281,10 @@ server = function(input, output, session) {
         # save to disk
         just_filename = paste0(filecode, '.csv')
         
-        if (grepl('SERI_2017', path)) {
-          color = strsplit(tail(strsplit(filename_in, .Platform$file.sep)[[1]],1), '_')[[1]][2]
-          just_filename = paste0(filecode, '_', color, '.csv')
-        }
+        # if (grepl('SERI_2017', path)) {
+        #   color = strsplit(tail(strsplit(filename_in, .Platform$file.sep)[[1]],1), '_')[[1]][2]
+        #   just_filename = paste0(filecode, '_', color, '.csv')
+        # }
         
         cat('Writing to folder = ', path_out, '\n')
         export.pupil.dataframe.toDisk(output_mapping, just_filename, path_out, 'mapping')
@@ -296,7 +295,7 @@ server = function(input, output, session) {
         just_filename_in = tail(strsplit(filename_in, .Platform$file.sep)[[1]],1)
         
         cat(paste('     -- Moving the input file to:',  move_path, '\n'))
-        from = file.path(path, just_filename_in, fsep = .Platform$file.sep)
+        from = file.path(paths_data_in, just_filename_in, fsep = .Platform$file.sep)
         to = file.path(move_path, just_filename_in, fsep = .Platform$file.sep)
         
         # check if they exist or need to be created
@@ -338,7 +337,7 @@ server = function(input, output, session) {
       })
       
       
-      if ( (grepl('1stPass', input_type)) | (grepl('pupil', path)) ) {
+      if (grepl('1stPass', input_type)) { # | (grepl('pupil', path)) ) {
       
         output$plotComp_loFreq <- renderPlot({
           ggplot(signals_df, aes(time, loFreq)) + geom_line() +

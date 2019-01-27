@@ -346,6 +346,7 @@ import.and.install.libraries = function(paths) {
   
   # TIME-FREQ
   
+  if (!require("pracma")) install.packages("pracma"); library("pracma")
   
   # SHINY APPs
   if (!require("Cairo")) install.packages("Cairo"); library("Cairo")

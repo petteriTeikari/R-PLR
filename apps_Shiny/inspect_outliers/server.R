@@ -21,6 +21,7 @@ server <- function(input, output) {
   cat('   --- just_the_file = ', just_the_file, '\n')
   cat('   --- --- full_path_script = ', full_path_script, '\n\n')
   script.dir = gsub(just_the_file, '', full_path_script)
+  path_base = script.dir
   
   # remove the last separator
   if (substr(path_base, nchar(path_base), nchar(path_base)) == '/') {

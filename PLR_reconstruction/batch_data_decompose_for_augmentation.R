@@ -45,11 +45,18 @@ batch.data.decompose.for.augmentation = function(data_path = NA,
   # Go through the files
     
     start_time <- Sys.time()
-    list_of_DFs = mclapply(files_to_process, function(files_to_process){
-      file.decomp_augmentation.wrapper(files_to_process, data_path_out, param, pupil_col, debug = FALSE)
-    } , mc.cores = param[['no_of_cores_to_use']])
+    if (identical(.Platform$OS.type, 'windows')) {
+      list_of_DFs = lapply(files_to_process, function(files_to_process){
+        file.decomp_augmentation.wrapper(files_to_process, data_path_out, param, pupil_col, debug = FALSE)
+      }) 
+      
+    } else {
+      list_of_DFs = mclapply(files_to_process, function(files_to_process){
+        file.decomp_augmentation.wrapper(files_to_process, data_path_out, param, pupil_col, debug = FALSE)
+      } , mc.cores = param[['no_of_cores_to_use']])
+    }
     end_time <- Sys.time()
-    end_time - start_time # 17.26166 hours with home AMD (4 cores)
+    end_time - start_time # 3 seconds for 3 files
   
   
 }

@@ -241,7 +241,7 @@ recheck.normalization = function(df_out, i, filecode, indices = NA, baseline_in 
   baseline_out = median(df_out$pupil[i1:i2])
   
   if (length(baseline_out) == 0) {
-    cat('No baseline vector found')
+    cat('  No baseline vector found, thus we re-compute it!\n')
     baseline_out = median(df_out$missForest[i1:i2])  
     df_out$pupil = df_out$missForest
   }
