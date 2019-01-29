@@ -61,6 +61,12 @@ save.matrices.for.deep.learning = function(data_frame_feats, list_traces, subjec
     # grouped_list = split.into.groups.by.grouping(list_agematched, factors_in, parameters)
   }
   
+  # TODO! This now hard-coded
+  classes_augm[classes_augm == 'Control'] = 0
+  classes_augm[classes_augm == 'Glaucoma'] = 1
+  classes_augm = as.integer(classes_augm)
+  sum(classes_augm)
+  
   # DEBUG POINT DEEPfinal
   # save.image(file = file.path(debug_path, 'debug_poinDEEPfinal.Rdata')) # 540.6 MB
   # load(file = file.path(debug_path, 'debug_pointDEEPfinal.Rdata'))
@@ -71,7 +77,7 @@ save.matrices.for.deep.learning = function(data_frame_feats, list_traces, subjec
   y_agematched_aug = export.list.to.disk.for.deep.learning(t = list_agematched$time[,1],
                                                        y = y_augm,
                                                        err = list_agematched$error, # TODO! Not correct but not needed now
-                                                       classes = factors_augm,
+                                                       classes = as.integer(factors_augm),
                                                        subject_codes = subjects_augm,
                                                        title_string = 'glaucoma_SERI_augm',
                                                        path_out = settings[['data_deep_path_out']],
@@ -342,7 +348,6 @@ export.list.to.disk.for.deep.learning = function(t, y, err, classes, subject_cod
     
     classes_train = as.numeric(classes_train)
     classes_test = as.numeric(classes_test)
-    
     classes_numeric = as.integer(classes_numeric)
     
     # join the class label as the first column
@@ -352,8 +357,6 @@ export.list.to.disk.for.deep.learning = function(t, y, err, classes, subject_cod
     
     cat(paste0('   exporting the split to: ', path_out, '\n      3 files: all/train/test, for data = ', title_string))
     
-  
- 
   } else {
     
     cat('Exporting augmented dataset to disk\n')
@@ -362,7 +365,7 @@ export.list.to.disk.for.deep.learning = function(t, y, err, classes, subject_cod
     y_out = NA
     
     # Train data
-    classes_train = factors_augm
+    classes_train = as.numeric(factors_augm)
     cat('   cbind() train data and label\n') # not sure why this is so slow?
     y_out_train = cbind(cbind(c(classes_train)), t(y))
     subj_code_train = subject_codes
