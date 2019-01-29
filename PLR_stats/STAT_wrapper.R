@@ -113,20 +113,33 @@ STAT.wrapper = function(data_frame_feats, list_traces, subject_codes_traces,
     
   # PROCESS -----------------------------------------------------------------  
     
+    # DEBUG POINT 2
+    # save.image(file = file.path(debug_path, 'debug_point2.Rdata')) # 153.8 MB
+    # load(file = file.path(debug_path, 'debug_point2.Rdata')) # 153.8 MB
+      
+    # NOTE! Again, make sure that your paths and packages are in order
     no_of_different_analyses = length(analysis_param)
     
     # Now go through all the analyses wanted
     for (analys_ind in 1 : 1) { #no_of_different_analyses) {
     
-      # Plot average traces
+      # NOTE! If you want to devel/debug this, and have a look how the correct subjects are selected
+      # Plot average traces, and output the indices corresponding to the desired subjects from the "database"
       master_indices_out = plot.average.traces(data_frame_feats, list_traces, subject_codes_traces, 
-                               dataset_type, derived_feats_names,
+                               dataset_type, derived_feats_names, debug_path,
                                analysis_param[[analys_ind]], settings)
-      
+    
+      # DEBUG POINT 3
+      # save.image(file = file.path(debug_path, 'debug_point3.Rdata')) # 153.8 MB
+      # load(file = file.path(debug_path, 'debug_point3.Rdata')) # 153.8 MB
+        
       # Show the feats then
-      p2 = stats.point.features(data_frame_feats, list_traces, dataset_type,
+      p2 = stats.point.features(data_frame_feats, list_traces, dataset_type, subject_codes_traces,
                                 master_indices_out, derived_feats_names, plot_type = 'boxplot',
                                 parameters = analysis_param[[analys_ind]], settings)
+      
+      save.image(file = file.path(debug_path, 'debug_point4.Rdata')) # 153.8 MB
+      # load(file = file.path(debug_path, 'debug_point4.Rdata')) # 153.8 MB
               
     }
       

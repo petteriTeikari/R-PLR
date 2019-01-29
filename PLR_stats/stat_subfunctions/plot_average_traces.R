@@ -1,5 +1,5 @@
 plot.average.traces = function(data_frame_feats, list_traces, subject_codes_traces, 
-                               dataset_type, derived_feats_names, 
+                               dataset_type, derived_feats_names, debug_path,
                                parameters, settings) {
   
   # Pre-process, i.e. wrangle the data
@@ -9,6 +9,10 @@ plot.average.traces = function(data_frame_feats, list_traces, subject_codes_trac
     stats_df_out = return_list[[1]]
     scalar_stats = return_list[[2]]
     master_indices_out = return_list[[3]]
+    
+    # DEBUG POINT 2b
+    save.image(file = file.path(debug_path, 'debug_point2b.Rdata')) # 154.2 MB
+    # load(file = file.path(debug_path, 'debug_point2b.Rdata'))
   
   # PLOT
   plot_list_of_subset_traces(stats_df_out, scalar_stats,  

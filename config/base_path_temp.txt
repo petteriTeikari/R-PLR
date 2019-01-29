@@ -1,2 +1,2 @@
 "base_path"
-"C:/Users/petteri-sda1/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR"
+"~/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/R-PLR"

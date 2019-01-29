@@ -1,4 +1,4 @@
-data_in,unix,/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA
-data_out,unix,/home/petteri/Dropbox/LABs/SERI/PLR_Folder/DATA_OUT
+data_in,unix,/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/TEST_IN
+data_out,unix,/home/petteri/Dropbox/manuscriptDrafts/pupilArtifactsConditioning/PLR_CODE/TEST_OUT
 data_in,windows,C:\Users\petteri-sda1\Dropbox\manuscriptDrafts\pupilArtifactsConditioning\PLR_CODE\TEST_IN
 data_out,windows,C:\Users\petteri-sda1\Dropbox\manuscriptDrafts\pupilArtifactsConditioning\PLR_CODE\TEST_OUT

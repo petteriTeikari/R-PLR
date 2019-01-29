@@ -1,4 +1,4 @@
-stats.point.features = function(data_frame_feats, list_traces, dataset_type,
+stats.point.features = function(data_frame_feats, list_traces, dataset_type, subject_codes_traces,
                                 master_indices_out, derived_feats_names, plot_type = 'boxplot',
                                 parameters, settings) {
   
@@ -59,6 +59,9 @@ stats.point.features = function(data_frame_feats, list_traces, dataset_type,
   path_out = file.path(data_path_out, file_out, fsep = .Platform$file.sep)
   write.table(time_vector_out, file = path_out, sep = ",",  row.names = FALSE, col.names = 'time_onsetZero') # , col.names = N
  
+  # DEBUG POINT 3b
+  save.image(file = file.path(debug_path, 'debug_point3b.Rdata')) # 158.6 MB
+  # load(file = file.path(debug_path, 'debug_point3b.Rdata')) # 153.8 MB
   
   # Plot finally 
   if (identical(plot_type, 'boxplot')) {
@@ -82,17 +85,19 @@ stats.point.features = function(data_frame_feats, list_traces, dataset_type,
                        select_groups = selected,
                        parameters, settings)
   
-  if (parameters[['ROC']][['combine_pathologies_also']]) {
-    density.and.ROC.plot(df_trim, df_trim_stats, 
-                         features = parameters[['features']], var_name_to_plot = 'mean',
-                         grouping_variable, combine_pathology = TRUE, parameters, settings)
-  }
+  # if (parameters[['ROC']][['combine_pathologies_also']]) {
+  #   parameters[['factors_keep']][[parameters[['main_factor']]]] = c('CONTROL', 'NTG', 'POAG', 'GLAUCOMA+', 'OTHER GLAUCOMA', 'PACG')
+  #   density.and.ROC.plot(df_trim, df_trim_stats, 
+  #                        features = parameters[['features']], var_name_to_plot = 'mean',
+  #                        grouping_variable, combine_pathology = TRUE, parameters, settings)
+  # }
   
   # VIDEO Demonstration of stat
-  video.demo.of.groups(df_trim, df_trim_stats, list_traces,
-                       features = parameters[['features']], var_name_to_plot = 'mean',
-                       master_indices_out, grouping_variable, 
-                       combine_pathology = TRUE, parameters, settings)
+  # TODO! Prob does not work really
+  # video.demo.of.groups(df_trim, df_trim_stats, list_traces,
+  #                      features = parameters[['features']], var_name_to_plot = 'mean',
+  #                      master_indices_out, grouping_variable, 
+  #                      combine_pathology = TRUE, parameters, settings)
   
   
   
