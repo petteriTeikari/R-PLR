@@ -4,6 +4,8 @@ Collection of R functions for processing Pupillary Light Reflex (PLR) recordings
 
 Available *as it is*, not yet ready as usable package, coming with some glitches still.
 
+**TODO!** Make a package, and easy to use
+
 # Quick installation Guide
 
 See the [Prerequisites for R and Github](https://github.com/petteriTeikari/R-PLR/wiki/Prerequisites-for-R-and-Github) if R and Git(hub) are new beasts to you
